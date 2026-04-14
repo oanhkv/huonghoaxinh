@@ -41,7 +41,59 @@
         footer a:hover { 
             color: #fff; 
         }
+        /* Hiệu ứng Overlay cho sản phẩm */
+.product-card {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.product-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+
+.product-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 2;
+}
+
+.product-card:hover .product-overlay {
+    opacity: 1;
+}
+
+.product-overlay .btn {
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    margin: 0 6px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    color: #333;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    transition: all 0.2s ease;
+}
+
+.product-overlay .btn:hover {
+    transform: scale(1.1);
+    background: #198754;
+    color: white;
+}
     </style>
+
 </head>
 <body>
 
@@ -136,39 +188,79 @@
         </div>
 
         <!-- Main Navigation -->
-        <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
-            <div class="container">
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="mainNav">
-                    <ul class="navbar-nav mx-auto fw-medium">
-                        <li class="nav-item">
-                            <a href="{{ route('home') }}" class="nav-link active">TRANG CHỦ</a>
-                        </li>
-                        
-                        @foreach(($mainCategories ?? collect()) as $categoryItem)
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
-                                {{ strtoupper((string) ($categoryItem->name ?? '')) }}
-                            </a>
-                            <ul class="dropdown-menu">
-                                @foreach(($categoryItem->children ?? collect()) as $sub)
+        
+    <!-- Main Navigation -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm">
+    <div class="container">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="mainNav">
+            <ul class="navbar-nav mx-auto fw-medium">
+
+                <!-- Trang chủ -->
+                <li class="nav-item">
+                    <a href="{{ route('home') }}" class="nav-link @if(request()->routeIs('home')) active @endif">
+                        TRANG CHỦ
+                    </a>
+                </li>
+
+                <!-- Danh mục Sản phẩm (Dropdown từ Database - KHÔNG LẶP) -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" role="button">
+                        DANH MỤC SẢN PHẨM
+                    </a>
+                    <ul class="dropdown-menu">
+                        @foreach($mainCategories ?? [] as $category)
+                            <!-- Danh mục cha -->
+                            <li>
+                                <a class="dropdown-item fw-bold text-dark" 
+                                   href="{{ route('shop') }}?category={{ $category->slug }}">
+                                    {{ $category->name }}
+                                </a>
+                            </li>
+                            
+                            <!-- Danh mục con (nếu có) -->
+                            @if($category->children->count() > 0)
+                                @foreach($category->children as $sub)
                                     <li>
-                                        <a class="dropdown-item" href="{{ route('shop') }}?category={{ $sub->slug }}">
-                                            {{ $sub->name }}
+                                        <a class="dropdown-item" 
+                                           href="{{ route('shop') }}?category={{ $sub->slug }}">
+                                            — {{ $sub->name }}
                                         </a>
                                     </li>
                                 @endforeach
-                            </ul>
-                        </li>
+                            @endif
                         @endforeach
-
-                        <li class="nav-item"><a href="#" class="nav-link">THIẾT KẾ THEO YÊU CẦU</a></li>
                     </ul>
-                </div>
-            </div>
-        </nav>
+                </li>
+
+                <!-- Giới thiệu -->
+                <li class="nav-item">
+                    <a href="{{ route('about') }}" class="nav-link @if(request()->routeIs('about')) active @endif">
+                        GIỚI THIỆU
+                    </a>
+                </li>
+
+                <!-- Blog -->
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        BLOG
+                    </a>
+                </li>
+
+                <!-- Liên hệ -->
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        LIÊN HỆ
+                    </a>
+                </li>
+
+            </ul>
+        </div>
+    </div>
+</nav>
     </header>
 
     <!-- ==================== MAIN CONTENT ==================== -->

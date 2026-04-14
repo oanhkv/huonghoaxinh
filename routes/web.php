@@ -21,6 +21,8 @@ use App\Http\Controllers\Admin\WebsiteSettingController;
 // ==================== FRONTEND ROUTES ====================
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/shop', [ShopController::class, 'index'])->name('shop');
+// Trang Giới thiệu (About Us)
+Route::get('/about', [HomeController::class, 'about'])->name('about');
 
 // ==================== ADMIN ROUTES ====================
 Route::prefix('admin')
