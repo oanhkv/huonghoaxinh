@@ -78,17 +78,44 @@
             <div class="row">
                 @forelse($products as $product)
                 <div class="col-md-4 col-6 mb-4">
-                    <div class="card h-100 border-0 shadow-sm">
+                    <div class="product-card card h-100 border-0 shadow-sm position-relative" style="cursor:pointer;" onclick="window.location='{{ route('product.show', $product->slug) }}'">
                         @if($product->image)
                             <img src="{{ asset('storage/' . $product->image) }}" 
                                  class="card-img-top" style="height: 220px; object-fit: cover;" alt="{{ $product->name }}">
                         @else
                             <img src="https://via.placeholder.com/300x220" class="card-img-top" alt="{{ $product->name }}">
                         @endif
+
+                        <div class="product-overlay" onclick="event.stopPropagation();">
+                            <div class="d-flex justify-content-center gap-2">
+                                <form method="POST" action="{{ route('favorites.store') }}" class="m-0">
+                                    @csrf
+                                    <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                    <button type="button" class="btn btn-light btn-sm rounded-circle shadow-sm" title="Yêu thích" onclick="event.stopPropagation(); this.closest('form').submit();">
+                                        <i class="fas fa-heart text-danger"></i>
+                                    </button>
+                                </form>
+                                <form method="POST" action="{{ route('cart.store') }}" class="m-0">
+                                    @csrf
+                                    <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                    <button class="btn btn-light btn-sm rounded-circle shadow-sm" title="Thêm vào giỏ hàng" type="button" onclick="event.stopPropagation(); this.closest('form').submit();">
+                                        <i class="fas fa-shopping-cart text-success"></i>
+                                    </button>
+                                </form>
+                                <a href="{{ route('product.show', $product->slug) }}" class="btn btn-light btn-sm rounded-circle shadow-sm" title="Xem chi tiết" onclick="event.stopPropagation();">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </div>
+                        </div>
+
                         <div class="card-body text-center">
-                            <h6 class="card-title">{{ $product->name }}</h6>
+                            <h6 class="card-title">
+                                <a href="{{ route('product.show', $product->slug) }}" class="text-decoration-none text-dark">
+                                    {{ $product->name }}
+                                </a>
+                            </h6>
                             <p class="text-danger fw-bold mb-2">{{ number_format($product->price) }} đ</p>
-                            <a href="#" class="btn btn-outline-success btn-sm w-100">Thêm vào giỏ</a>
+                            <a href="{{ route('product.show', $product->slug) }}" class="btn btn-outline-success btn-sm w-100">Xem chi tiết</a>
                         </div>
                     </div>
                 </div>

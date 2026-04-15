@@ -12,18 +12,49 @@
         $catalogMode = ($siteSettings['enable_catalog_mode'] ?? '0') === '1';
     @endphp
 
-    <!-- Hero Banner -->
-    <div class="position-relative">
-        <img src="{{ $heroImage }}" class="w-100" style="height: 550px; object-fit: cover;" alt="Hero">
-        <div class="position-absolute top-50 start-50 translate-middle text-center text-white w-100 px-4">
-            <h1 class="display-3 fw-bold mb-3" style="text-shadow: 0 3px 10px rgba(0,0,0,0.6)">
-                {{ $heroTitle }}
-            </h1>
-            <p class="lead mb-4">{{ $heroSubtitle }}</p>
-            <a href="{{ route('shop') }}" class="btn btn-light btn-lg px-5 py-3 fw-bold">
-                {{ $heroButtonText }} <i class="fas fa-arrow-right ms-2"></i>
-            </a>
+    <!-- Hero Slider -->
+    @php
+        $heroSlides = [
+            [
+                'image' => $heroImage,
+                'title' => $heroTitle,
+                'subtitle' => $heroSubtitle,
+                'buttonText' => $heroButtonText,
+                'buttonLink' => route('shop'),
+            ],
+            [
+                'image' => 'https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=1600&q=80',
+                'title' => 'Tình yêu nở hoa mỗi ngày',
+                'subtitle' => 'Hoa tươi thiết kế tinh tế dành cho những khoảnh khắc ngọt ngào.',
+                'buttonText' => 'Khám phá ngay',
+                'buttonLink' => route('shop'),
+            ],
+        ];
+    @endphp
+
+    <div class="banner-slider">
+        <div class="slider-track">
+            @foreach($heroSlides as $slide)
+                <div class="slider-item" style="background-image: url('{{ $slide['image'] }}');">
+                    <div class="slider-content">
+                        <span class="badge bg-success rounded-pill px-3 py-2 mb-3">HƯƠNG HOA XINH</span>
+                        <h1 class="fw-bold">{{ $slide['title'] }}</h1>
+                        <p>{{ $slide['subtitle'] }}</p>
+                        <a href="{{ $slide['buttonLink'] }}" class="btn btn-light btn-lg px-5 py-3 fw-bold text-success">
+                            {{ $slide['buttonText'] }} <i class="fas fa-arrow-right ms-2"></i>
+                        </a>
+                    </div>
+                </div>
+            @endforeach
         </div>
+
+        <button type="button" class="slider-nav prev" aria-label="Previous slide">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <button type="button" class="slider-nav next" aria-label="Next slide">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+        <div class="slider-dots"></div>
     </div>
 
     <!-- About Section -->
@@ -67,13 +98,21 @@
                                 <!-- Overlay khi hover -->
                                 <div class="product-overlay">
                                     <div class="d-flex justify-content-center gap-3">
-                                        <button class="btn btn-light btn-sm rounded-circle shadow-sm" title="Yêu thích">
-                                            <i class="fas fa-heart text-danger"></i>
-                                        </button>
-                                        <button class="btn btn-light btn-sm rounded-circle shadow-sm" title="Thêm vào giỏ hàng">
-                                            <i class="fas fa-shopping-cart text-success"></i>
-                                        </button>
-                                        <a href="#" class="btn btn-light btn-sm rounded-circle shadow-sm" title="Xem chi tiết">
+                                        <form method="POST" action="{{ route('favorites.store') }}" class="m-0" onclick="event.stopPropagation();">
+                                            @csrf
+                                            <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                            <button type="button" class="btn btn-light btn-sm rounded-circle shadow-sm" title="Yêu thích" onclick="event.stopPropagation(); this.closest('form').submit();">
+                                                <i class="fas fa-heart text-danger"></i>
+                                            </button>
+                                        </form>
+                                        <form method="POST" action="{{ route('cart.store') }}" class="m-0">
+                                            @csrf
+                                            <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                            <button class="btn btn-light btn-sm rounded-circle shadow-sm" title="Thêm vào giỏ hàng" type="button" onclick="event.stopPropagation(); this.closest('form').submit();">
+                                                <i class="fas fa-shopping-cart text-success"></i>
+                                            </button>
+                                        </form>
+                                        <a href="{{ route('product.show', $product->slug) }}" class="btn btn-light btn-sm rounded-circle shadow-sm" title="Xem chi tiết">
                                             <i class="fas fa-eye"></i>
                                         </a>
                                     </div>
@@ -113,13 +152,21 @@
                     <!-- Overlay khi hover -->
                     <div class="product-overlay">
                         <div class="d-flex">
-                            <button class="btn" title="Yêu thích">
-                                <i class="fas fa-heart"></i>
-                            </button>
-                            <button class="btn" title="Thêm vào giỏ hàng">
-                                <i class="fas fa-shopping-cart"></i>
-                            </button>
-                            <a href="#" class="btn" title="Xem chi tiết">
+                            <form method="POST" action="{{ route('favorites.store') }}" class="m-0" onclick="event.stopPropagation();">
+                                @csrf
+                                <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                <button type="button" class="btn" title="Yêu thích" onclick="event.stopPropagation(); this.closest('form').submit();">
+                                    <i class="fas fa-heart"></i>
+                                </button>
+                            </form>
+                            <form method="POST" action="{{ route('cart.store') }}" class="m-0">
+                                @csrf
+                                <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                <button class="btn" title="Thêm vào giỏ hàng" type="button" onclick="event.stopPropagation(); this.closest('form').submit();">
+                                    <i class="fas fa-shopping-cart"></i>
+                                </button>
+                            </form>
+                            <a href="{{ route('product.show', $product->slug) }}" class="btn" title="Xem chi tiết">
                                 <i class="fas fa-eye"></i>
                             </a>
                         </div>
@@ -135,7 +182,7 @@
         @endforeach
     </div>
 </div>
-
+ 
         <div class="text-center mt-4">
             <a href="{{ route('shop') }}" class="btn btn-success px-5">
                 Xem tất cả sản phẩm →
@@ -219,5 +266,77 @@
             </div>
         </div>
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const slider = document.querySelector('.banner-slider');
+            if (!slider) return;
 
+            const track = slider.querySelector('.slider-track');
+            const slides = Array.from(track.children);
+            const prevButton = slider.querySelector('.slider-nav.prev');
+            const nextButton = slider.querySelector('.slider-nav.next');
+            const dotsContainer = slider.querySelector('.slider-dots');
+            let activeIndex = 0;
+            let startX = null;
+
+            function createDots() {
+                slides.forEach((slide, index) => {
+                    const dot = document.createElement('button');
+                    dot.type = 'button';
+                    dot.className = 'slider-dot' + (index === 0 ? ' active' : '');
+                    dot.addEventListener('click', function () {
+                        goToSlide(index);
+                    });
+                    dotsContainer.appendChild(dot);
+                });
+            }
+
+            function updateSlider() {
+                track.style.transform = `translateX(-${activeIndex * 100}%)`;
+                const dots = dotsContainer.querySelectorAll('.slider-dot');
+                dots.forEach((dot, index) => {
+                    dot.classList.toggle('active', index === activeIndex);
+                });
+            }
+
+            function goToSlide(index) {
+                activeIndex = (index + slides.length) % slides.length;
+                updateSlider();
+            }
+
+            prevButton.addEventListener('click', function () {
+                goToSlide(activeIndex - 1);
+            });
+
+            nextButton.addEventListener('click', function () {
+                goToSlide(activeIndex + 1);
+            });
+
+            slider.addEventListener('touchstart', function (event) {
+                startX = event.touches[0].clientX;
+            }, {passive: true});
+
+            slider.addEventListener('touchmove', function (event) {
+                if (startX === null) return;
+                const currentX = event.touches[0].clientX;
+                const diff = currentX - startX;
+
+                if (Math.abs(diff) > 60) {
+                    if (diff < 0) {
+                        goToSlide(activeIndex + 1);
+                    } else {
+                        goToSlide(activeIndex - 1);
+                    }
+                    startX = null;
+                }
+            }, {passive: true});
+
+            slider.addEventListener('touchend', function () {
+                startX = null;
+            });
+
+            createDots();
+            updateSlider();
+        });
+    </script>
 @endsection

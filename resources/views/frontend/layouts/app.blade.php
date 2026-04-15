@@ -92,6 +92,202 @@
     background: #198754;
     color: white;
 }
+
+.banner-slider {
+    position: relative;
+    overflow: hidden;
+    min-height: 560px;
+}
+
+.banner-slider .slider-track {
+    display: flex;
+    transition: transform 0.6s ease;
+}
+
+.banner-slider .slider-item {
+    min-width: 100%;
+    height: 560px;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+}
+
+.banner-slider .slider-item::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+}
+
+.banner-slider .slider-content {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 0 24px;
+}
+
+.banner-slider .slider-content h1 {
+    color: white;
+    font-size: 3.5rem;
+    margin-bottom: 1rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.banner-slider .slider-content p {
+    color: white;
+    font-size: 1.25rem;
+    margin-bottom: 2rem;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+.slider-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255,255,255,0.9);
+    border: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #333;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.slider-nav:hover {
+    background: white;
+    transform: translateY(-50%) scale(1.1);
+}
+
+.slider-nav.prev {
+    left: 20px;
+}
+
+.slider-nav.next {
+    right: 20px;
+}
+
+.slider-dots {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    z-index: 10;
+}
+
+.slider-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.5);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.slider-dot.active {
+    background: white;
+}
+    color: #fff;
+    z-index: 1;
+}
+
+.banner-slider .slider-content h1 {
+    font-size: clamp(2.6rem, 4vw, 4.8rem);
+    line-height: 1.05;
+}
+
+.banner-slider .slider-content p {
+    max-width: 700px;
+    margin: 1rem auto 1.8rem;
+    font-size: 1.15rem;
+}
+
+.banner-slider .slider-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255,255,255,0.85);
+    color: #198754;
+    cursor: pointer;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+}
+
+.banner-slider .slider-nav:hover {
+    background: #fff;
+}
+
+.banner-slider .slider-nav.prev {
+    left: 16px;
+}
+
+.banner-slider .slider-nav.next {
+    right: 16px;
+}
+
+.banner-slider .slider-dots {
+    position: absolute;
+    left: 50%;
+    bottom: 18px;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    z-index: 2;
+}
+
+.banner-slider .slider-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.7);
+    cursor: pointer;
+    border: none;
+    outline: none;
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.banner-slider .slider-dot:focus {
+    outline: none;
+}
+
+.banner-slider .slider-dot.active {
+    transform: scale(1.2);
+    background: #198754;
+}
+
+@media (max-width: 768px) {
+    .banner-slider {
+        min-height: 420px;
+    }
+    .banner-slider .slider-content h1 {
+        font-size: 2.4rem;
+    }
+    .banner-slider .slider-content p {
+        font-size: 1rem;
+    }
+    .banner-slider .slider-nav {
+        width: 44px;
+        height: 44px;
+    }
+}
     </style>
 
 </head>
@@ -140,13 +336,16 @@
 
                     <!-- Icons + Login/Logout -->
                     <div class="col-lg-4 col-6 text-end">
-                        <a href="#" class="text-decoration-none me-4">
+                        @php $favoriteCount = collect(session('favorites', []))->count(); @endphp
+                        <a href="{{ route('favorites.index') }}" class="text-decoration-none me-4 position-relative">
                             <i class="fas fa-heart fa-lg text-danger"></i>
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">{{ $favoriteCount }}</span>
                         </a>
                         
-                        <a href="#" class="text-decoration-none me-4 position-relative">
+                        @php $cartCount = collect(session('cart', []))->sum('quantity'); @endphp
+                        <a href="{{ route('cart.index') }}" class="text-decoration-none me-4 position-relative">
                             <i class="fas fa-shopping-cart fa-lg text-success"></i>
-                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">0</span>
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">{{ $cartCount }}</span>
                         </a>
 
                         @if(Auth::check())
@@ -245,14 +444,14 @@
 
                 <!-- Blog -->
                 <li class="nav-item">
-                    <a href="#" class="nav-link">
+                    <a href="{{ route('blog.index') }}" class="nav-link @if(request()->routeIs('blog.*')) active @endif">
                         BLOG
                     </a>
                 </li>
 
                 <!-- Liên hệ -->
                 <li class="nav-item">
-                    <a href="#" class="nav-link">
+                    <a href="{{ route('contact.index') }}" class="nav-link @if(request()->routeIs('contact.*')) active @endif">
                         LIÊN HỆ
                     </a>
                 </li>
@@ -279,7 +478,7 @@
                     </a>
                     <p class="small mt-2">
                         Hoa tươi chất lượng cao<br>
-                        Giao hàng nhanh tại TP.HCM
+                        Giao hàng nhanh tại Hà Nội
                     </p>
                     <p class="small">
                         <strong>Phone:</strong> {{ $hotline }}<br>
@@ -312,13 +511,13 @@
                 <div class="col-lg-3 col-md-6 mb-4">
                     <h5 class="fw-bold">ĐỊA CHỈ CÁC SHOP</h5>
                     <ul class="list-unstyled small">
-                        <li><strong>Chi nhánh 1:</strong> 456 Nguyễn Văn Khối, Gò Vấp</li>
-                        <li><strong>Chi nhánh 2:</strong> 123 Phan Huy Ích, Phú Nhuận</li>
-                        <li><strong>Chi nhánh 3:</strong> 789 Lê Đức Thọ, Quận 7</li>
+                        <li><strong>Chi nhánh 1:</strong> 123 Xuân Phương, Nam Từ Liêm</li>
+                        <li><strong>Chi nhánh 2:</strong> 123 Di Trạch, Hoài Đức</li>
+                        <li><strong>Chi nhánh 3:</strong> 789 Lê Đức Thọ, Bắc Từ Liêm</li>
                     </ul>
                     <p class="mt-3 text-danger small">
                         <strong>Đặt hoa trực tuyến:</strong><br>
-                        0859 773 086 (Zalo/Phone)
+                        0377786256 (Zalo/Phone)
                     </p>
                 </div>
             </div>
@@ -345,5 +544,82 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Banner Slider Auto-play
+        document.addEventListener('DOMContentLoaded', function() {
+            const slider = document.querySelector('.banner-slider');
+            if (!slider) return;
+
+            const track = slider.querySelector('.slider-track');
+            const items = slider.querySelectorAll('.slider-item');
+            const prevBtn = slider.querySelector('.slider-nav.prev');
+            const nextBtn = slider.querySelector('.slider-nav.next');
+            const dotsContainer = slider.querySelector('.slider-dots');
+
+            let currentIndex = 0;
+            let autoPlayInterval;
+
+            // Create dots
+            items.forEach((_, index) => {
+                const dot = document.createElement('div');
+                dot.className = 'slider-dot' + (index === 0 ? ' active' : '');
+                dot.addEventListener('click', () => goToSlide(index));
+                dotsContainer.appendChild(dot);
+            });
+
+            const dots = dotsContainer.querySelectorAll('.slider-dot');
+
+            function updateDots() {
+                dots.forEach((dot, index) => {
+                    dot.classList.toggle('active', index === currentIndex);
+                });
+            }
+
+            function goToSlide(index) {
+                currentIndex = index;
+                track.style.transform = `translateX(-${currentIndex * 100}%)`;
+                updateDots();
+            }
+
+            function nextSlide() {
+                currentIndex = (currentIndex + 1) % items.length;
+                goToSlide(currentIndex);
+            }
+
+            function prevSlide() {
+                currentIndex = (currentIndex - 1 + items.length) % items.length;
+                goToSlide(currentIndex);
+            }
+
+            function startAutoPlay() {
+                autoPlayInterval = setInterval(nextSlide, 5000); // Auto slide every 5 seconds
+            }
+
+            function stopAutoPlay() {
+                clearInterval(autoPlayInterval);
+            }
+
+            // Event listeners
+            prevBtn.addEventListener('click', () => {
+                prevSlide();
+                stopAutoPlay();
+                startAutoPlay(); // Restart auto-play
+            });
+
+            nextBtn.addEventListener('click', () => {
+                nextSlide();
+                stopAutoPlay();
+                startAutoPlay(); // Restart auto-play
+            });
+
+            // Pause on hover
+            slider.addEventListener('mouseenter', stopAutoPlay);
+            slider.addEventListener('mouseleave', startAutoPlay);
+
+            // Start auto-play
+            startAutoPlay();
+        });
+    </script>
 </body>
 </html>

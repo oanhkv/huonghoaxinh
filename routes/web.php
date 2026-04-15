@@ -5,6 +5,12 @@ use Illuminate\Support\Facades\Route;
 // ==================== FRONTEND ====================
 use App\Http\Controllers\Frontend\HomeController;
 use App\Http\Controllers\Frontend\ShopController;
+use App\Http\Controllers\Frontend\CartController;
+use App\Http\Controllers\Frontend\CheckoutController;
+use App\Http\Controllers\Frontend\FavoritesController;
+use App\Http\Controllers\Frontend\ProductController as FrontendProductController;
+use App\Http\Controllers\Frontend\BlogController;
+use App\Http\Controllers\Frontend\ContactController;
 
 // ==================== ADMIN ====================
 use App\Http\Controllers\Admin\DashboardController;
@@ -21,8 +27,29 @@ use App\Http\Controllers\Admin\WebsiteSettingController;
 // ==================== FRONTEND ROUTES ====================
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/shop', [ShopController::class, 'index'])->name('shop');
+
 // Trang Giới thiệu (About Us)
 Route::get('/about', [HomeController::class, 'about'])->name('about');
+Route::post('/cart', [CartController::class, 'store'])->name('cart.store');
+Route::patch('/cart/{product}', [CartController::class, 'update'])->name('cart.update');
+Route::delete('/cart/{product}', [CartController::class, 'destroy'])->name('cart.destroy');
+Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+Route::post('/favorites', [FavoritesController::class, 'store'])->name('favorites.store');
+Route::delete('/favorites/{product}', [FavoritesController::class, 'destroy'])->name('favorites.destroy');
+Route::get('/favorites', [FavoritesController::class, 'index'])->name('favorites.index');
+Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
+Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
+Route::get('/checkout/online', [CheckoutController::class, 'online'])->name('checkout.online');
+Route::post('/checkout/online', [CheckoutController::class, 'processOnline'])->name('checkout.online.process');
+Route::get('/checkout/sms-verify', [CheckoutController::class, 'smsSendForm'])->name('checkout.sms.form');
+Route::post('/checkout/sms-verify', [CheckoutController::class, 'verifySms'])->name('checkout.sms.verify');
+Route::post('/checkout/sms-resend', [CheckoutController::class, 'resendSms'])->name('checkout.sms.resend');
+Route::get('/checkout/success', [CheckoutController::class, 'success'])->name('checkout.success');
+Route::get('/product/{slug}', [FrontendProductController::class, 'show'])->name('product.show');
+Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
+Route::get('/blog/{slug}', [BlogController::class, 'show'])->name('blog.show');
+Route::get('/contact', [ContactController::class, 'index'])->name('contact.index');
+Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
 
 // ==================== ADMIN ROUTES ====================
 Route::prefix('admin')
