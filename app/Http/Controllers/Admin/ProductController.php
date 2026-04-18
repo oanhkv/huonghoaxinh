@@ -49,6 +49,7 @@ class ProductController extends Controller
             'stock' => 'required|integer',
             'category_id' => 'required|exists:categories,id',
             'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'sizes' => 'nullable|json',
         ]);
 
         $product = new Product();
@@ -60,6 +61,11 @@ class ProductController extends Controller
         $product->category_id = $request->category_id;
         $product->is_featured = $request->has('is_featured');
         $product->is_active = true;
+
+        // Handle sizes
+        if ($request->filled('sizes')) {
+            $product->sizes = json_decode($request->sizes, true);
+        }
 
         if ($request->hasFile('image')) {
             $image = $request->file('image');
@@ -88,6 +94,7 @@ class ProductController extends Controller
             'stock' => 'required|integer',
             'category_id' => 'required|exists:categories,id',
             'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'sizes' => 'nullable|json',
         ]);
 
         $product->name = $request->name;
@@ -97,6 +104,11 @@ class ProductController extends Controller
         $product->stock = $request->stock;
         $product->category_id = $request->category_id;
         $product->is_featured = $request->has('is_featured');
+
+        // Handle sizes
+        if ($request->filled('sizes')) {
+            $product->sizes = json_decode($request->sizes, true);
+        }
 
         if ($request->hasFile('image')) {
             // Xóa ảnh cũ

@@ -18,11 +18,36 @@ class Product extends Model
         'image',
         'category_id',
         'is_featured',
-        'is_active'
+        'is_active',
+        'sizes'
+    ];
+
+    protected $casts = [
+        'sizes' => 'array',
     ];
 
     public function category()
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
+
+    public function visibleReviews()
+    {
+        return $this->reviews()->where('is_visible', true);
+    }
+
+    public function getAverageRatingAttribute()
+    {
+        return round($this->visibleReviews()->avg('rating') ?? 0, 1);
+    }
+
+    public function getReviewCountAttribute()
+    {
+        return $this->visibleReviews()->count();
     }
 }

@@ -19,6 +19,7 @@
     <title>@yield('title', $siteSettings['meta_title'] ?? $siteName) - {{ $siteName }}</title>
     <meta name="description" content="{{ $siteSettings['meta_description'] ?? '' }}">
     <meta name="keywords" content="{{ $siteSettings['meta_keywords'] ?? '' }}">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
@@ -140,14 +141,28 @@
 
                     <!-- Icons + Login/Logout -->
                     <div class="col-lg-4 col-6 text-end">
-                        <a href="#" class="text-decoration-none me-4">
-                            <i class="fas fa-heart fa-lg text-danger"></i>
-                        </a>
+                        @auth
+                            <a href="{{ route('wishlist.index') }}" class="text-decoration-none me-4 position-relative">
+                                <i class="fas fa-heart fa-lg text-danger"></i>
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="wishlistCount">0</span>
+                            </a>
+                        @else
+                            <a href="{{ route('login') }}" class="text-decoration-none me-4">
+                                <i class="fas fa-heart fa-lg text-danger"></i>
+                            </a>
+                        @endauth
                         
-                        <a href="#" class="text-decoration-none me-4 position-relative">
-                            <i class="fas fa-shopping-cart fa-lg text-success"></i>
-                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">0</span>
-                        </a>
+                        @auth
+                            <a href="{{ route('cart.index') }}" class="text-decoration-none me-4 position-relative">
+                                <i class="fas fa-shopping-cart fa-lg text-success"></i>
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="cartCount">0</span>
+                            </a>
+                        @else
+                            <a href="{{ route('login') }}" class="text-decoration-none me-4 position-relative">
+                                <i class="fas fa-shopping-cart fa-lg text-success"></i>
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">0</span>
+                            </a>
+                        @endauth
 
                         @if(Auth::check())
                             <!-- Đã đăng nhập -->
@@ -158,7 +173,9 @@
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end">
                                     <li><a class="dropdown-item" href="#">Tài khoản của tôi</a></li>
-                                    <li><a class="dropdown-item" href="#">Lịch sử đơn hàng</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('wishlist.index') }}">Sản phẩm yêu thích</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('cart.index') }}">Giỏ hàng của tôi</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('orders.history') }}">Lịch sử đơn hàng</a></li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li>
                                         <a class="dropdown-item text-danger" href="#" 
@@ -245,14 +262,21 @@
 
                 <!-- Blog -->
                 <li class="nav-item">
-                    <a href="#" class="nav-link">
+                    <a href="{{ route('blog.index') }}" class="nav-link @if(request()->routeIs('blog.*')) active @endif">
                         BLOG
+                    </a>
+                </li>
+
+                <!-- Mã giảm giá -->
+                <li class="nav-item">
+                    <a href="{{ route('vouchers') }}" class="nav-link @if(request()->routeIs('vouchers')) active @endif">
+                        <i class="fas fa-tag me-1"></i>MÃ GIẢM GIÁ
                     </a>
                 </li>
 
                 <!-- Liên hệ -->
                 <li class="nav-item">
-                    <a href="#" class="nav-link">
+                    <a href="{{ route('contact') }}" class="nav-link @if(request()->routeIs('contact')) active @endif">
                         LIÊN HỆ
                     </a>
                 </li>
@@ -345,5 +369,174 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Khởi tạo cart count
+        @auth
+            updateCartCount();
+            updateWishlistCount();
+        @endauth
+
+        // Cập nhật số lượng giỏ hàng
+        function updateCartCount() {
+            @auth
+                fetch('/cart/get', {
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    const cartCountBadge = document.getElementById('cartCount');
+                    if (cartCountBadge) {
+                        const quantity = data.items.reduce((sum, item) => sum + item.quantity, 0);
+                        cartCountBadge.textContent = quantity > 0 ? quantity : '0';
+                    }
+                });
+            @endauth
+        }
+
+        // Cập nhật số lượng wishlist
+        function updateWishlistCount() {
+            @auth
+                fetch('{{ route("wishlist.index") }}', {
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}'
+                    }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    // Count wishlist items from DOM
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const count = doc.querySelectorAll('.product-card').length;
+                    
+                    const wishlistCountBadge = document.getElementById('wishlistCount');
+                    if (wishlistCountBadge) {
+                        wishlistCountBadge.textContent = count > 0 ? count : '0';
+                    }
+                });
+            @endauth
+        }
+
+        // Add to cart function
+        function addToCart(productId, quantity = 1, unitPrice = null, variant = null) {
+            @auth
+                const payload = {
+                    product_id: productId,
+                    quantity: parseInt(quantity),
+                };
+
+                if (unitPrice !== null) {
+                    payload.unit_price = parseFloat(unitPrice);
+                }
+
+                if (variant) {
+                    payload.variant = variant;
+                }
+
+                fetch('/cart/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify(payload)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Response:', data);
+                    if (data.success) {
+                        updateCartCount();
+                        showNotification(data.message, 'success');
+                    } else {
+                        showNotification(data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Fetch error:', error);
+                    showNotification('Lỗi: ' + error.message, 'error');
+                });
+            @else
+                window.location.href = '{{ route("login") }}';
+            @endauth
+        }
+
+        // Toggle wishlist
+        function toggleWishlist(productId, event = null) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+
+            @auth
+                fetch('/wishlist/toggle', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify({
+                        product_id: productId
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification(data.message, 'success');
+                        updateWishlistCount();
+                        
+                        // Update heart icon if on product card
+                        const wishlistBtn = document.querySelector(`button[onclick*="toggleWishlist(${productId}"]`);
+                        if (wishlistBtn) {
+                            const icon = wishlistBtn.querySelector('i');
+                            if (icon) {
+                                if (data.action === 'added') {
+                                    icon.classList.remove('far');
+                                    icon.classList.add('fas');
+                                } else {
+                                    icon.classList.remove('fas');
+                                    icon.classList.add('far');
+                                }
+                            }
+                        }
+                    } else {
+                        showNotification(data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('Lỗi: ' + error.message, 'error');
+                });
+            @else
+                window.location.href = '{{ route("login") }}';
+            @endauth
+        }
+
+        // Hiển thị notification
+        function showNotification(message, type = 'info') {
+            const alertClass = type === 'success' ? 'alert-success' : (type === 'error' ? 'alert-danger' : 'alert-info');
+            const alertHtml = `
+                <div class="alert ${alertClass} alert-dismissible fade show position-fixed top-0 end-0 m-3" role="alert" style="z-index: 9999; max-width: 400px;">
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', alertHtml);
+            
+            // Auto dismiss sau 3 giây
+            setTimeout(() => {
+                const alert = document.querySelector('.alert-dismissible');
+                if (alert) {
+                    alert.remove();
+                }
+            }, 3000);
+        }
+    </script>
 </body>
 </html>
