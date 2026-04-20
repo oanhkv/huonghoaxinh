@@ -370,39 +370,37 @@
 
         <!-- Main Content -->
         <div class="flex-grow-1">
-            @if(request()->routeIs('admin.dashboard'))
-                <!-- Topbar -->
-                <nav class="navbar navbar-light navbar-admin px-4 py-3">
-                    <div class="container-fluid">
-                        <div>
-                            <div class="text-muted small mb-1">Trang quản trị</div>
-                            <h5 class="mb-0 page-title">@yield('title')</h5>
-                        </div>
-                        
-                        <div class="d-flex align-items-center gap-2 gap-lg-3 flex-wrap justify-content-end">
-                            <a href="{{ route('home') }}" class="btn btn-outline-primary btn-sm px-3">
-                                <i class="fas fa-store me-1"></i> Trang bán hàng
-                            </a>
-                            <span class="badge bg-success px-3 py-2">Online</span>
-                            <div class="dropdown">
-                                <button class="btn navbar-user-btn dropdown-toggle px-3" data-bs-toggle="dropdown">
-                                    <i class="fas fa-user-circle"></i> {{ Auth::user()->name }}
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li><a class="dropdown-item" href="{{ route('admin.profile.edit') }}">Thông tin cá nhân</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li>
-                                        <a class="dropdown-item text-danger" href="#" 
-                                           onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                                            Đăng xuất
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
+            <!-- Topbar -->
+            <nav class="navbar navbar-light navbar-admin px-4 py-3">
+                <div class="container-fluid">
+                    <div>
+                        <div class="text-muted small mb-1">Trang quản trị</div>
+                        <h5 class="mb-0 page-title">@yield('title')</h5>
+                    </div>
+                    
+                    <div class="d-flex align-items-center gap-2 gap-lg-3 flex-wrap justify-content-end">
+                        <a href="{{ route('home') }}" class="btn btn-outline-primary btn-sm px-3">
+                            <i class="fas fa-store me-1"></i> Trang bán hàng
+                        </a>
+                        <span class="badge bg-success px-3 py-2">Online</span>
+                        <div class="dropdown">
+                            <button class="btn navbar-user-btn dropdown-toggle px-3" data-bs-toggle="dropdown">
+                                <i class="fas fa-user-circle"></i> {{ Auth::user()->name }}
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="{{ route('admin.profile.edit') }}">Thông tin cá nhân</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item text-danger" href="#" 
+                                       onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                        Đăng xuất
+                                    </a>
+                                </li>
+                            </ul>
                         </div>
                     </div>
-                </nav>
-            @endif
+                </div>
+            </nav>
 
             <!-- Content -->
             <div class="admin-content">

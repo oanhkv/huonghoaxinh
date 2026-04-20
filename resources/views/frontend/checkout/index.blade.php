@@ -3,7 +3,11 @@
 @section('title', 'Thanh toán - Hương Hoa Xinh')
 
 @section('content')
-<div class="container py-5">
+<div class="container py-5" id="checkoutPage"
+     data-subtotal="{{ $subtotal }}"
+     data-discount="{{ $discount }}"
+     data-estimate-url="{{ route('shipping.estimate') }}"
+     data-csrf="{{ csrf_token() }}">
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{{ route('home') }}" class="text-decoration-none">Trang chủ</a></li>
@@ -26,13 +30,23 @@
 
                         @if(isset($pendingOrder) && $pendingOrder->status === 'pending')
                             <div class="alert alert-info">
-                                Bạn đang tiếp tục đơn hàng thanh toán qua SMS. Nhấn "Tiếp tục" để gửi lại mã xác thực.
+                                Bạn đang có đơn hàng chờ thanh toán thẻ. Nhấn "Tiếp tục" để mở lại trang thanh toán.
                             </div>
                         @endif
 
                         <div class="mb-3">
                             <label for="shippingAddress" class="form-label">Địa chỉ giao hàng</label>
-                            <textarea name="shipping_address" id="shippingAddress" class="form-control @error('shipping_address') is-invalid @enderror" rows="3" required>{{ $shippingAddress ?? '' }}</textarea>
+                            <textarea name="shipping_address" id="shippingAddress" class="form-control @error('shipping_address') is-invalid @enderror" rows="3" required placeholder="Ví dụ: Số nhà, ngõ, phường/xã, quận/huyện, Hà Nội">{{ $shippingAddress ?? '' }}</textarea>
+                            <div class="form-text">
+                                <i class="fas fa-store me-1 text-success"></i>
+                                Tính phí ship từ cửa hàng: <strong>{{ config('shop.address_line') }}</strong>
+                            </div>
+                            <div id="distanceInfo" class="small mt-2 {{ trim((string)($shippingAddress ?? '')) !== '' ? '' : 'd-none' }}">
+                                Khoảng cách ước tính: <strong id="distanceKmLabel">{{ number_format($distanceKm ?? 0, 1, ',', '.') }}</strong> km
+                                @if(isset($distanceGeocoded) && ! $distanceGeocoded)
+                                    <span class="text-warning">(hệ thống chưa xác định chính xác địa chỉ — dùng mức phí an toàn)</span>
+                                @endif
+                            </div>
                             @error('shipping_address')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -47,14 +61,22 @@
                         </div>
 
                         <div class="mb-3">
+                            <label for="voucherCode" class="form-label">Mã giảm giá</label>
+                            <input type="text" name="voucher_code" id="voucherCode" value="{{ $voucherCode ?? '' }}" class="form-control @error('voucher_code') is-invalid @enderror" placeholder="Nhập mã giảm giá nếu có">
+                            @error('voucher_code')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="mb-3">
                             <label class="form-label">Phương thức thanh toán</label>
                             <div class="form-check">
                                 <input class="form-check-input" type="radio" name="payment_method" id="paymentCod" value="cod" {{ ($paymentMethod ?? 'cod') === 'cod' ? 'checked' : '' }}>
                                 <label class="form-check-label" for="paymentCod">Thanh toán khi nhận hàng (COD)</label>
                             </div>
                             <div class="form-check">
-                                <input class="form-check-input" type="radio" name="payment_method" id="paymentOnline" value="online" {{ ($paymentMethod ?? '') === 'online' ? 'checked' : '' }}>
-                                <label class="form-check-label" for="paymentOnline">Thanh toán trực tuyến bằng SMS xác thực</label>
+                                <input class="form-check-input" type="radio" name="payment_method" id="paymentCard" value="card" {{ ($paymentMethod ?? '') === 'card' ? 'checked' : '' }}>
+                                <label class="form-check-label" for="paymentCard">Thanh toán bằng thẻ (qua liên kết cổng thanh toán)</label>
                             </div>
                             @error('payment_method')
                                 <div class="text-danger small mt-1">{{ $message }}</div>
@@ -67,7 +89,7 @@
                         </div>
 
                         <button type="submit" class="btn btn-success btn-lg w-100">
-                            <i class="fas fa-check-circle me-2"></i>Tiếp tục</button>
+                            <i class="fas fa-check-circle me-2"></i>Tiếp tục thanh toán</button>
                     </form>
                 </div>
             </div>
@@ -103,21 +125,88 @@
                     </div>
                     <div class="d-flex justify-content-between mb-2">
                         <span>Phí vận chuyển</span>
-                        <span class="fw-bold text-success">{{ $shipping === 0 ? 'Miễn phí' : number_format($shipping, 0, ',', '.') . ' ₫' }}</span>
+                        <span class="fw-bold text-success" id="shippingPreview">{{ $shipping === 0 ? 'Miễn phí' : number_format($shipping, 0, ',', '.') . ' ₫' }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Giảm giá</span>
+                        <span class="fw-bold text-danger" id="discountPreview">-{{ number_format($discount ?? 0, 0, ',', '.') }} ₫</span>
                     </div>
                     <div class="d-flex justify-content-between fs-5 fw-bold pt-2 border-top">
                         <span>Tổng cộng</span>
-                        <span class="text-success">{{ number_format($total, 0, ',', '.') }} ₫</span>
+                        <span class="text-success" id="totalPreview">{{ number_format($total, 0, ',', '.') }} ₫</span>
                     </div>
                 </div>
             </div>
 
             <div class="card shadow-sm bg-light p-3">
                 <p class="mb-2"><strong>Ghi chú:</strong></p>
-                <p class="small text-muted mb-1"><i class="fas fa-info-circle me-2"></i>Với thanh toán trực tuyến, chúng tôi sẽ gửi mã SMS xác thực đến số điện thoại của bạn.</p>
-                <p class="small text-muted mb-0"><i class="fas fa-shield-alt me-2"></i>Đơn hàng được xử lý ngay khi xác thực thành công.</p>
+                <p class="small text-muted mb-1"><i class="fas fa-info-circle me-2"></i>Khi chọn thanh toán thẻ, hệ thống sẽ hiển thị liên kết thanh toán và hóa đơn chi tiết.</p>
+                <p class="small text-muted mb-0"><i class="fas fa-shield-alt me-2"></i>Đơn hàng sẽ chuyển trạng thái xác nhận ngay sau khi hoàn tất thanh toán.</p>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+(function () {
+    const root = document.getElementById('checkoutPage');
+    const addr = document.getElementById('shippingAddress');
+    const shippingPreview = document.getElementById('shippingPreview');
+    const totalPreview = document.getElementById('totalPreview');
+    const distanceInfo = document.getElementById('distanceInfo');
+    const distanceKmLabel = document.getElementById('distanceKmLabel');
+    if (!root || !addr || !shippingPreview || !totalPreview) return;
+
+    const subtotal = parseFloat(root.dataset.subtotal || '0');
+    const discount = parseFloat(root.dataset.discount || '0');
+    const estimateUrl = root.dataset.estimateUrl;
+    const csrf = root.dataset.csrf;
+    let debounceTimer = null;
+
+    function formatMoney(n) {
+        return new Intl.NumberFormat('vi-VN').format(n) + ' ₫';
+    }
+
+    function applyShippingToTotal(shipping) {
+        shippingPreview.textContent = shipping === 0 ? 'Miễn phí' : formatMoney(shipping);
+        const total = Math.max(0, subtotal + shipping - discount);
+        totalPreview.textContent = formatMoney(total);
+    }
+
+    function estimate() {
+        const text = (addr.value || '').trim();
+        if (text.length < 8) {
+            return;
+        }
+        fetch(estimateUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrf
+            },
+            body: JSON.stringify({ shipping_address: text })
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            if (!data.success) return;
+            if (distanceInfo && distanceKmLabel) {
+                distanceInfo.classList.remove('d-none');
+                distanceKmLabel.textContent = new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 1 }).format(data.distance_km);
+            }
+            applyShippingToTotal(parseInt(data.shipping, 10) || 0);
+        })
+        .catch(function () { /* giữ giá trị server render */ });
+    }
+
+    addr.addEventListener('input', function () {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(estimate, 550);
+    });
+
+    if ((addr.value || '').trim().length >= 8) {
+        estimate();
+    }
+})();
+</script>
 @endsection

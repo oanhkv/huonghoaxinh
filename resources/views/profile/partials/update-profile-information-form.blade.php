@@ -1,5 +1,5 @@
-<div class="card">
-    <div class="card-header">{{ __('Profile Information') }}</div>
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-light fw-bold">Thông tin cá nhân</div>
 
     <div class="card-body">
         <form
@@ -16,7 +16,7 @@
 
             <div class="row mb-3">
                 <label for="name" class="col-md-4 col-form-label text-md-end">
-                    {{ __('Name') }}
+                    Họ và tên
                 </label>
 
                 <div class="col-md-6">
@@ -32,7 +32,7 @@
 
             <div class="row mb-3">
                 <label for="email" class="col-md-4 col-form-label text-md-end">
-                    {{ __('Email') }}
+                    Email
                 </label>
 
                 <div class="col-md-6">
@@ -64,13 +64,41 @@
                 </div>
             </div>
 
+            <div class="row mb-3">
+                <label for="phone" class="col-md-4 col-form-label text-md-end">
+                    Số điện thoại
+                </label>
+                <div class="col-md-6">
+                    <input id="phone" type="text" class="form-control @error('phone') is-invalid @enderror" name="phone" value="{{ old('phone', $user->phone) }}" autocomplete="tel">
+                    @error('phone')
+                        <span class="invalid-feedback" role="alert">
+                            <strong>{{ $message }}</strong>
+                        </span>
+                    @enderror
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <label for="address" class="col-md-4 col-form-label text-md-end">
+                    Địa chỉ nhận hàng mặc định
+                </label>
+                <div class="col-md-6">
+                    <textarea id="address" class="form-control @error('address') is-invalid @enderror" name="address" rows="2">{{ old('address', $user->address) }}</textarea>
+                    @error('address')
+                        <span class="invalid-feedback" role="alert">
+                            <strong>{{ $message }}</strong>
+                        </span>
+                    @enderror
+                </div>
+            </div>
+
             <div class="row mb-0">
                 <div class="col-md-6 offset-md-4">
                     <button type="submit" class="btn btn-primary">
-                        {{ __('Save') }}
+                        Lưu thông tin
                     </button>
                     @if (session('status') === 'profile-updated')
-                        <span class="m-1 fade-out">{{ __('Saved.') }}</span>
+                        <span class="m-1 fade-out">Đã lưu.</span>
                     @endif
                 </div>
             </div>

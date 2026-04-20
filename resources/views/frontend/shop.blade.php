@@ -3,18 +3,24 @@
 @section('title', 'Cửa hàng - Hương Hoa Xinh')
 
 @section('content')
-<div class="container py-5">
+<div class="container py-5 shop-page">
 
-    <div class="row mb-4 align-items-center">
-        <div class="col-lg-8">
-            <p class="text-success fw-bold mb-2">Cửa hàng hoa Hương Hoa Xinh</p>
-            <h1 class="display-6 fw-bold mb-2">Tìm bó hoa ưng ý cho mọi dịp</h1>
-            <p class="text-muted mb-0">Khám phá bộ sưu tập hoa tươi, giỏ hoa, bó hoa theo chủ đề và quà tặng đặc biệt.</p>
-        </div>
-        <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
-            <a href="{{ route('shop') }}" class="btn btn-success btn-lg shadow-sm">
-                <i class="fas fa-seedling me-2"></i>Khám phá ngay
-            </a>
+    <div class="shop-hero rounded-4 p-4 p-lg-5 mb-5 text-white position-relative overflow-hidden reveal-up">
+        <div class="position-absolute top-0 end-0 opacity-25" style="font-size: 8rem; line-height: 1; transform: translate(10%, -20%);">🌷</div>
+        <div class="row align-items-center position-relative" style="z-index: 1;">
+            <div class="col-lg-8">
+                <p class="fw-bold mb-2 text-white-50 text-uppercase small letter-spacing-1">Cửa hàng trực tuyến</p>
+                <h1 class="display-5 fw-bold mb-3">Tìm bó hoa ưng ý cho mọi dịp</h1>
+                <p class="mb-0 opacity-90 lead">Khám phá bộ sưu tập hoa tươi, giỏ hoa và quà tặng — giao diện tối ưu để tôn sản phẩm.</p>
+            </div>
+            <div class="col-lg-4 text-lg-end mt-4 mt-lg-0">
+                <a href="{{ route('vouchers') }}" class="btn btn-light btn-lg rounded-pill px-4 shadow me-lg-2 mb-2 mb-lg-0">
+                    <i class="fas fa-tag me-2 text-danger"></i>Ưu đãi
+                </a>
+                <a href="#shop-grid" class="btn btn-success btn-lg rounded-pill px-4 shadow">
+                    <i class="fas fa-seedling me-2"></i>Xem sản phẩm
+                </a>
+            </div>
         </div>
     </div>
 
@@ -44,7 +50,7 @@
     <div class="row">
         <!-- Sidebar Danh mục -->
         <div class="col-lg-3">
-            <div class="card shadow-sm mb-4 border-0 rounded-4 overflow-hidden">
+            <div class="card shadow-sm mb-4 border-0 rounded-4 overflow-hidden reveal-up">
                 <div class="card-header bg-white border-0">
                     <h5 class="mb-0">Danh mục Hoa</h5>
                 </div>
@@ -67,9 +73,9 @@
         </div>
 
         <!-- Nội dung chính -->
-        <div class="col-lg-9">
+        <div class="col-lg-9" id="shop-grid">
             <!-- Bộ lọc & Sắp xếp -->
-            <div class="card shadow-sm mb-4 shop-filter-card border-0">
+            <div class="card shadow-sm mb-4 shop-filter-card border-0 reveal-up">
                 <div class="card-body p-4">
                     <div class="row g-3 align-items-center">
                         <div class="col-md-6">
@@ -111,7 +117,7 @@
             <!-- Danh sách sản phẩm -->
             <div class="row g-4">
                 @forelse($products as $product)
-                <div class="col-lg-4 col-md-6">
+                <div class="col-lg-4 col-md-6 reveal-up">
                     <div class="card h-100 shadow-sm product-card">
                         <!-- Product Image Container -->
                         <div class="position-relative overflow-hidden" style="height: 250px;">
@@ -207,6 +213,19 @@
 </div>
 
 <style>
+.shop-hero {
+    background: linear-gradient(125deg, #157347 0%, #0d6efd 45%, #6f42c1 100%);
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
+}
+.shop-page .reveal-up {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.shop-page .reveal-up.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
 .shop-filter-card {
     border-radius: 24px;
     transition: transform 0.3s ease;
@@ -316,4 +335,24 @@
     }
 }
 </style>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var root = document.querySelector('.shop-page');
+    if (!root) return;
+    var els = root.querySelectorAll('.reveal-up');
+    if (!('IntersectionObserver' in window)) {
+        els.forEach(function (el) { el.classList.add('is-visible'); });
+        return;
+    }
+    var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+                io.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.08, rootMargin: '0px 0px -30px 0px' });
+    els.forEach(function (el) { io.observe(el); });
+});
+</script>
 @endsection

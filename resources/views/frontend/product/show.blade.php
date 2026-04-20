@@ -14,6 +14,19 @@
         </ol>
     </nav>
 
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+
     <!-- Product Detail -->
     <div class="row mb-5">
         <!-- Product Image -->
@@ -145,7 +158,7 @@
                 <div class="row">
                     <div class="col-sm-6 mb-3">
                         <p class="small text-muted mb-1"><i class="fas fa-truck text-success me-2"></i>Giao hàng</p>
-                        <p class="small">Giao nhanh nội thành TP.HCM trong 2 giờ</p>
+                        <p class="small">Giao nhanh khu vực Hà Nội &amp; lân cận — phí ship theo khoảng cách từ cửa hàng.</p>
                     </div>
                     <div class="col-sm-6 mb-3">
                         <p class="small text-muted mb-1"><i class="fas fa-sync text-success me-2"></i>Hoàn lại</p>
@@ -230,32 +243,53 @@
                             <p class="text-center text-muted py-5">Chưa có đánh giá nào cho sản phẩm này.</p>
                         @endif
 
-                        <!-- Write Review Form -->
                         @auth
                             <hr class="my-5">
-                            <h5 class="mb-4">Để lại đánh giá của bạn</h5>
-                            <form action="#" method="POST">
-                                @csrf
-                                <div class="mb-3">
-                                    <label class="form-label">Xếp hạng của bạn</label>
-                                    <div class="rating-input">
+                            @if($userReview)
+                                <div class="alert alert-success border-0 shadow-sm">
+                                    <h6 class="fw-bold mb-2">Bạn đã đánh giá sản phẩm này</h6>
+                                    <div class="mb-1">
                                         @for($i = 1; $i <= 5; $i++)
-                                            <i class="fas fa-star star-icon" data-rating="{{ $i }}" style="cursor: pointer; font-size: 24px; color: #ddd; transition: color 0.2s;"></i>
+                                            <i class="fas fa-star {{ $i <= $userReview->rating ? 'text-warning' : 'text-muted' }}"></i>
                                         @endfor
                                     </div>
-                                    <input type="hidden" id="ratingValue" name="rating" value="0">
+                                    <p class="mb-0 text-muted">{{ $userReview->comment }}</p>
                                 </div>
+                            @elseif($canReview)
+                                <h5 class="mb-4">Để lại đánh giá của bạn</h5>
+                                <p class="small text-muted mb-3">Chỉ khách đã mua sản phẩm trong đơn hàng <strong>đã thanh toán</strong> hoặc <strong>đã giao</strong> mới gửi đánh giá được.</p>
+                                <form action="{{ route('reviews.store') }}" method="POST">
+                                    @csrf
+                                    <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                    <div class="mb-3">
+                                        <label class="form-label">Xếp hạng của bạn</label>
+                                        <div class="rating-input" id="ratingStars">
+                                            @for($i = 1; $i <= 5; $i++)
+                                                <i class="fas fa-star star-icon" data-rating="{{ $i }}" style="cursor: pointer; font-size: 24px; color: #ddd; transition: color 0.2s;"></i>
+                                            @endfor
+                                        </div>
+                                        <input type="hidden" id="ratingValue" name="rating" value="5" required>
+                                    </div>
 
-                                <div class="mb-3">
-                                    <label for="reviewComment" class="form-label">Nhận xét của bạn</label>
-                                    <textarea class="form-control" id="reviewComment" name="comment" rows="4" 
-                                              placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm..."></textarea>
+                                    <div class="mb-3">
+                                        <label for="reviewComment" class="form-label">Nhận xét của bạn</label>
+                                        <textarea class="form-control @error('comment') is-invalid @enderror" id="reviewComment" name="comment" rows="4"
+                                                  placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm..." required>{{ old('comment') }}</textarea>
+                                        @error('comment')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fas fa-paper-plane me-2"></i>Gửi đánh giá
+                                    </button>
+                                </form>
+                            @else
+                                <div class="alert alert-info border-0" role="alert">
+                                    <i class="fas fa-shopping-bag me-2"></i>
+                                    Mua và hoàn tất đơn hàng (đã thanh toán hoặc đã nhận hàng) để có thể đánh giá sản phẩm này.
                                 </div>
-
-                                <button type="submit" class="btn btn-success">
-                                    <i class="fas fa-paper-plane me-2"></i>Gửi đánh giá
-                                </button>
-                            </form>
+                            @endif
                         @else
                             <div class="alert alert-info" role="alert">
                                 <i class="fas fa-info-circle me-2"></i>
@@ -429,50 +463,38 @@
         toggleWishlist({{ $product->id }});
     });
 
-    // Rating stars
-    document.querySelectorAll('.star-icon').forEach(star => {
-        star.addEventListener('click', function() {
-            const rating = this.getAttribute('data-rating');
-            document.getElementById('ratingValue').value = rating;
-            
-            document.querySelectorAll('.star-icon').forEach(s => {
-                if(s.getAttribute('data-rating') <= rating) {
+    (function () {
+        const ratingWrap = document.getElementById('ratingStars');
+        const ratingVal = document.getElementById('ratingValue');
+        if (!ratingWrap || !ratingVal) return;
+
+        ratingWrap.querySelectorAll('.star-icon').forEach(function (star) {
+            star.addEventListener('click', function () {
+                const rating = this.getAttribute('data-rating');
+                ratingVal.value = rating;
+                ratingWrap.querySelectorAll('.star-icon').forEach(function (s) {
+                    s.style.color = parseInt(s.getAttribute('data-rating'), 10) <= parseInt(rating, 10) ? '#FFC107' : '#ddd';
+                });
+            });
+            star.addEventListener('mouseover', function () {
+                const rating = this.getAttribute('data-rating');
+                ratingWrap.querySelectorAll('.star-icon').forEach(function (s) {
+                    s.style.color = parseInt(s.getAttribute('data-rating'), 10) <= parseInt(rating, 10) ? '#FFC107' : '#ddd';
+                });
+            });
+        });
+
+        ratingWrap.addEventListener('mouseleave', function () {
+            const selectedRating = ratingVal.value;
+            ratingWrap.querySelectorAll('.star-icon').forEach(function (s) {
+                if (selectedRating && parseInt(s.getAttribute('data-rating'), 10) <= parseInt(selectedRating, 10)) {
                     s.style.color = '#FFC107';
                 } else {
                     s.style.color = '#ddd';
                 }
             });
         });
-
-        star.addEventListener('mouseover', function() {
-            const rating = this.getAttribute('data-rating');
-            document.querySelectorAll('.star-icon').forEach(s => {
-                if(s.getAttribute('data-rating') <= rating) {
-                    s.style.color = '#FFC107';
-                } else {
-                    s.style.color = '#ddd';
-                }
-            });
-        });
-    });
-
-    document.querySelector('.rating-input').addEventListener('mouseleave', function() {
-        const selectedRating = document.getElementById('ratingValue').value;
-        document.querySelectorAll('.star-icon').forEach(s => {
-            if(selectedRating && s.getAttribute('data-rating') <= selectedRating) {
-                s.style.color = '#FFC107';
-            } else {
-                s.style.color = '#ddd';
-            }
-        });
-    });
-
-    // Helper functions
-    function addToCart(productId, quantity = 1) {
-        console.log('Adding to cart:', productId, quantity);
-        // TODO: Implement add to cart functionality
-        alert('Đã thêm sản phẩm vào giỏ hàng!');
-    }
+    })();
 
     function shareOnFacebook() {
         window.open(`https://www.facebook.com/sharer/sharer.php?u=${window.location.href}`, '_blank', 'width=600,height=400');

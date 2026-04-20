@@ -83,7 +83,7 @@
                                                         <span class="text-muted small">{{ $item->variant ?: 'Mặc định' }}</span><br>
                                                         <strong class="text-success">{{ number_format($item->price, 0, ',', '.') }} ₫</strong>
                                                     </div>
-                                                    <button class="btn btn-danger btn-sm" type="button" 
+                                                    <button class="btn btn-danger btn-sm remove-item" type="button"
                                                             data-cart-id="{{ $item->id }}" title="Xóa sản phẩm">
                                                         <i class="fas fa-trash-alt"></i>
                                                     </button>
@@ -189,6 +189,12 @@
                         <a href="{{ route('checkout.index') }}" class="btn btn-success btn-lg w-100 mb-2">
                             <i class="fas fa-lock me-2"></i>Tiến hành thanh toán
                         </a>
+
+                        @guest
+                            <div class="small text-muted mb-2">
+                                Bạn có thể thêm giỏ hàng không cần đăng nhập. Hệ thống sẽ yêu cầu đăng nhập khi bấm thanh toán.
+                            </div>
+                        @endguest
 
                         <button class="btn btn-outline-danger w-100" id="clearCartBtn" type="button">
                             <i class="fas fa-trash-alt me-2"></i>Xóa toàn bộ giỏ hàng

@@ -6,9 +6,9 @@
     @php
         $siteName = $siteSettings['site_name'] ?? 'Hương Hoa Xinh';
         $hotline = $siteSettings['hotline'] ?? '0859 773 086';
-        $shippingNote = $siteSettings['free_shipping_note'] ?? 'Giao hoa nhanh nội thành TP.HCM trong 2 giờ';
+        $shippingNote = $siteSettings['free_shipping_note'] ?? 'Giao khu vực Hà Nội — trong vòng 10 km tính từ cửa hàng được miễn phí ship';
         $supportEmail = $siteSettings['support_email'] ?? 'support@huonghoaxinh.vn';
-        $address = $siteSettings['address'] ?? 'Quận Gò Vấp, TP.HCM';
+        $address = $siteSettings['address'] ?? config('shop.address_line');
         $logo = $siteSettings['logo'] ?? '';
         $facebookUrl = $siteSettings['facebook_url'] ?? '#';
         $instagramUrl = $siteSettings['instagram_url'] ?? '#';
@@ -25,121 +25,246 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     
     <style>
-        .navbar-nav .dropdown-menu { 
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1); 
+        :root {
+            --hh-primary: #198754;
+            --hh-primary-dark: #146c43;
+            --hh-accent: #e91e8c;
+            --hh-dark: #0f172a;
+            --hh-muted: #64748b;
+            --hh-radius: 16px;
+            --hh-shadow: 0 20px 50px rgba(15, 23, 42, 0.08);
+            --hh-glass: rgba(255, 255, 255, 0.72);
         }
-        .nav-link { 
-            font-weight: 500; 
-            color: #333 !important; 
+
+        body {
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            color: var(--hh-dark);
+            background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 38%, #fff 100%);
+            min-height: 100vh;
         }
-        .nav-link:hover, .nav-link.active { 
-            color: #198754 !important; 
+
+        .site-topbar {
+            background: linear-gradient(90deg, #0f172a 0%, #1e293b 45%, #0f766e 100%);
+            color: rgba(255,255,255,0.92);
+            font-size: 0.875rem;
         }
-        footer a { 
-            color: #ddd; 
-            text-decoration: none; 
+
+        .site-topbar a {
+            color: rgba(255,255,255,0.95);
         }
-        footer a:hover { 
-            color: #fff; 
+
+        .site-header-main {
+            background: var(--hh-glass);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+            box-shadow: 0 8px 30px rgba(15, 23, 42, 0.06);
         }
-        /* Hiệu ứng Overlay cho sản phẩm */
-.product-card {
-    position: relative;
-    overflow: hidden;
-    transition: all 0.3s ease;
-}
 
-.product-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-}
+        .site-brand {
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            background: linear-gradient(135deg, var(--hh-primary) 0%, #0d9488 50%, var(--hh-accent) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
 
-.product-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.45);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transition: all 0.3s ease;
-    z-index: 2;
-}
+        .site-search .form-control {
+            border-radius: 999px;
+            border: 1px solid rgba(15, 23, 42, 0.1);
+            padding-left: 1.1rem;
+        }
 
-.product-card:hover .product-overlay {
-    opacity: 1;
-}
+        .site-search .btn {
+            border-radius: 999px;
+            padding-left: 1.25rem;
+            padding-right: 1.25rem;
+        }
 
-.product-overlay .btn {
-    width: 48px;
-    height: 48px;
-    padding: 0;
-    margin: 0 6px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: white;
-    color: #333;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    transition: all 0.2s ease;
-}
+        .site-nav-wrap {
+            background: rgba(255,255,255,0.55);
+            border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+        }
 
-.product-overlay .btn:hover {
-    transform: scale(1.1);
-    background: #198754;
-    color: white;
-}
+        .navbar-nav .dropdown-menu {
+            border: none;
+            border-radius: var(--hh-radius);
+            box-shadow: var(--hh-shadow);
+            padding: 0.5rem;
+        }
+
+        .site-nav .nav-link {
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            font-size: 0.8rem;
+            color: #334155 !important;
+            padding: 0.65rem 0.9rem !important;
+            border-radius: 999px;
+            transition: color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+        }
+
+        .site-nav .nav-link:hover,
+        .site-nav .nav-link.active {
+            color: var(--hh-primary) !important;
+            background: rgba(25, 135, 84, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .icon-chip {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(25,135,84,0.12), rgba(14,165,233,0.12));
+        }
+
+        .site-footer {
+            background: linear-gradient(180deg, #0f172a 0%, #020617 100%);
+            color: rgba(248, 250, 252, 0.88);
+            margin-top: 4rem;
+        }
+
+        .site-footer a {
+            color: rgba(248, 250, 252, 0.75);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .site-footer a:hover {
+            color: #fff;
+        }
+
+        .footer-heading {
+            font-size: 0.75rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: rgba(248, 250, 252, 0.55);
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .footer-glow {
+            position: absolute;
+            width: 420px;
+            height: 420px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(25,135,84,0.35) 0%, transparent 70%);
+            filter: blur(8px);
+            pointer-events: none;
+            top: -120px;
+            right: -80px;
+            opacity: 0.5;
+        }
+
+        /* Overlay sản phẩm (trang chủ / shop) */
+        .product-card {
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.35s ease, box-shadow 0.35s ease;
+        }
+
+        .product-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+        }
+
+        .product-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.45);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 2;
+        }
+
+        .product-card:hover .product-overlay {
+            opacity: 1;
+        }
+
+        .product-overlay .btn {
+            width: 48px;
+            height: 48px;
+            padding: 0;
+            margin: 0 6px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            color: #333;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transition: all 0.2s ease;
+        }
+
+        .product-overlay .btn:hover {
+            transform: scale(1.08);
+            background: var(--hh-primary);
+            color: white;
+        }
+
+        @keyframes hh-shimmer {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
+        }
+
+        .hh-shimmer-bar {
+            height: 3px;
+            background: linear-gradient(90deg, var(--hh-primary), #0ea5e9, var(--hh-accent), var(--hh-primary));
+            background-size: 200% auto;
+            animation: hh-shimmer 4s linear infinite;
+        }
     </style>
 
 </head>
 <body>
 
+    <div class="hh-shimmer-bar"></div>
+
     <!-- ==================== HEADER & NAVBAR ==================== -->
-    <header>
-        <!-- Top Bar -->
-        <div class="bg-light py-2 border-bottom">
+    <header class="sticky-top" style="z-index: 1030;">
+        <div class="site-topbar py-2">
             <div class="container">
-                <div class="row align-items-center small">
-                    <div class="col-md-6">
-                        <i class="fas fa-phone text-success"></i> 
-                        <strong>Hotline:</strong> {{ $hotline }} - Hỗ trợ 24/7
+                <div class="row align-items-center small g-2">
+                    <div class="col-md-6 d-flex align-items-center gap-3 flex-wrap">
+                        <span><i class="fas fa-headset me-1 text-info"></i><strong>Hotline</strong> {{ $hotline }}</span>
+                        <span class="d-none d-sm-inline opacity-75">|</span>
+                        <span class="d-none d-sm-inline"><i class="fas fa-truck me-1"></i>{{ $shippingNote }}</span>
                     </div>
                     <div class="col-md-6 text-md-end">
-                        {{ $shippingNote }}
+                        <span class="me-3"><i class="fas fa-shield-halved me-1 text-success"></i>Thanh toán an toàn</span>
+                        <span><i class="fas fa-clock me-1"></i>Hỗ trợ nhanh</span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Logo + Search + Account -->
-        <div class="bg-white shadow-sm py-3">
+        <div class="site-header-main py-3">
             <div class="container">
-                <div class="row align-items-center">
-                    <!-- Logo -->
+                <div class="row align-items-center g-3">
                     <div class="col-lg-3 col-6">
-                        <a href="{{ route('home') }}" class="text-decoration-none">
+                        <a href="{{ route('home') }}" class="text-decoration-none d-flex align-items-center gap-2">
                             @if($logo)
-                                <img src="{{ asset('storage/' . $logo) }}" alt="{{ $siteName }}" style="height: 44px; object-fit: contain;">
+                                <img src="{{ asset('storage/' . $logo) }}" alt="{{ $siteName }}" style="height: 48px; object-fit: contain;">
                             @else
-                                <h2 class="fw-bold text-success mb-0">🌸 {{ $siteName }}</h2>
+                                <span class="fs-2" aria-hidden="true">🌸</span>
                             @endif
+                            <span class="site-brand fs-4 mb-0">{{ $siteName }}</span>
                         </a>
                     </div>
 
-                    <!-- Search -->
-                    <div class="col-lg-5 col-12 my-3 my-lg-0">
-                        <form class="d-flex" action="{{ route('shop') }}">
-                            <input type="text" name="search" class="form-control" 
-                                   placeholder="Tìm kiếm hoa tươi, bó hoa...">
-                            <button class="btn btn-success ms-2"><i class="fas fa-search"></i></button>
+                    <div class="col-lg-5 col-12">
+                        <form class="d-flex site-search gap-2" action="{{ route('shop') }}">
+                            <input type="text" name="search" class="form-control shadow-none" placeholder="Tìm bó hoa, giỏ hoa, quà tặng...">
+                            <button class="btn btn-success shadow-sm" type="submit" aria-label="Tìm kiếm"><i class="fas fa-search"></i></button>
                         </form>
                     </div>
 
-                    <!-- Icons + Login/Logout -->
                     <div class="col-lg-4 col-6 text-end">
                         @auth
                             <a href="{{ route('wishlist.index') }}" class="text-decoration-none me-4 position-relative">
@@ -152,27 +277,19 @@
                             </a>
                         @endauth
                         
-                        @auth
-                            <a href="{{ route('cart.index') }}" class="text-decoration-none me-4 position-relative">
-                                <i class="fas fa-shopping-cart fa-lg text-success"></i>
-                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="cartCount">0</span>
-                            </a>
-                        @else
-                            <a href="{{ route('login') }}" class="text-decoration-none me-4 position-relative">
-                                <i class="fas fa-shopping-cart fa-lg text-success"></i>
-                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">0</span>
-                            </a>
-                        @endauth
+                        <a href="{{ route('cart.index') }}" class="text-decoration-none me-4 position-relative">
+                            <i class="fas fa-shopping-cart fa-lg text-success"></i>
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="cartCount">0</span>
+                        </a>
 
                         @if(Auth::check())
-                            <!-- Đã đăng nhập -->
                             <div class="dropdown d-inline-block">
-                                <button class="btn btn-outline-success btn-sm dropdown-toggle" 
+                                <button class="btn btn-outline-success btn-sm dropdown-toggle rounded-pill px-3"
                                         data-bs-toggle="dropdown">
                                     <i class="fas fa-user"></i> {{ Auth::user()->name }}
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end">
-                                    <li><a class="dropdown-item" href="#">Tài khoản của tôi</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('profile.edit') }}">Tài khoản của tôi</a></li>
                                     <li><a class="dropdown-item" href="{{ route('wishlist.index') }}">Sản phẩm yêu thích</a></li>
                                     <li><a class="dropdown-item" href="{{ route('cart.index') }}">Giỏ hàng của tôi</a></li>
                                     <li><a class="dropdown-item" href="{{ route('orders.history') }}">Lịch sử đơn hàng</a></li>
@@ -191,11 +308,10 @@
                             </form>
 
                         @else
-                            <!-- Chưa đăng nhập -->
-                            <a href="{{ route('login') }}" class="btn btn-outline-success btn-sm me-2">
+                            <a href="{{ route('login') }}" class="btn btn-outline-success btn-sm me-2 rounded-pill px-3">
                                 <i class="fas fa-user"></i> Đăng nhập
                             </a>
-                            <a href="{{ route('register') }}" class="btn btn-success btn-sm">
+                            <a href="{{ route('register') }}" class="btn btn-success btn-sm rounded-pill px-3">
                                 Đăng ký
                             </a>
                         @endif
@@ -204,29 +320,24 @@
             </div>
         </div>
 
-        <!-- Main Navigation -->
-        
-    <!-- Main Navigation -->
-<nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm">
+<nav class="navbar navbar-expand-lg site-nav-wrap site-nav py-0">
     <div class="container">
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+        <button class="navbar-toggler border-0 shadow-none my-2" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Menu">
             <span class="navbar-toggler-icon"></span>
         </button>
 
-        <div class="collapse navbar-collapse" id="mainNav">
-            <ul class="navbar-nav mx-auto fw-medium">
+        <div class="collapse navbar-collapse py-lg-2" id="mainNav">
+            <ul class="navbar-nav mx-auto align-items-lg-center gap-lg-1">
 
-                <!-- Trang chủ -->
                 <li class="nav-item">
                     <a href="{{ route('home') }}" class="nav-link @if(request()->routeIs('home')) active @endif">
-                        TRANG CHỦ
+                        Trang chủ
                     </a>
                 </li>
 
-                <!-- Danh mục Sản phẩm (Dropdown từ Database - KHÔNG LẶP) -->
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" role="button">
-                        DANH MỤC SẢN PHẨM
+                        Danh mục
                     </a>
                     <ul class="dropdown-menu">
                         @foreach($mainCategories ?? [] as $category)
@@ -253,31 +364,27 @@
                     </ul>
                 </li>
 
-                <!-- Giới thiệu -->
                 <li class="nav-item">
                     <a href="{{ route('about') }}" class="nav-link @if(request()->routeIs('about')) active @endif">
-                        GIỚI THIỆU
+                        Giới thiệu
                     </a>
                 </li>
 
-                <!-- Blog -->
                 <li class="nav-item">
                     <a href="{{ route('blog.index') }}" class="nav-link @if(request()->routeIs('blog.*')) active @endif">
-                        BLOG
+                        Blog
                     </a>
                 </li>
 
-                <!-- Mã giảm giá -->
                 <li class="nav-item">
                     <a href="{{ route('vouchers') }}" class="nav-link @if(request()->routeIs('vouchers')) active @endif">
-                        <i class="fas fa-tag me-1"></i>MÃ GIẢM GIÁ
+                        <i class="fas fa-tag me-1"></i>Ưu đãi
                     </a>
                 </li>
 
-                <!-- Liên hệ -->
                 <li class="nav-item">
                     <a href="{{ route('contact') }}" class="nav-link @if(request()->routeIs('contact')) active @endif">
-                        LIÊN HỆ
+                        Liên hệ
                     </a>
                 </li>
 
@@ -292,78 +399,76 @@
         @yield('content')
     </main>
 
-    <!-- ==================== FOOTER ==================== -->
-    <footer class="bg-light pt-5 pb-4">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-3 col-md-6 mb-4">
-                    <h5 class="fw-bold">HOA TƯƠI</h5>
-                    <a href="{{ route('home') }}">
-                        <h4 class="text-success fw-bold">🌸 {{ $siteName }}</h4>
-                    </a>
-                    <p class="small mt-2">
-                        Hoa tươi chất lượng cao<br>
-                        Giao hàng nhanh tại TP.HCM
+    <footer class="site-footer position-relative overflow-hidden pt-5 pb-4">
+        <div class="footer-glow"></div>
+        <div class="container position-relative" style="z-index: 1;">
+            <div class="row g-4">
+                <div class="col-lg-4 col-md-6">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <span class="fs-3">🌸</span>
+                        <div>
+                            <div class="fw-bold fs-5 text-white">{{ $siteName }}</div>
+                            <div class="small" style="color: rgba(248,250,252,0.65);">Hoa tươi — quà tặng — giao nhanh</div>
+                        </div>
+                    </div>
+                    <p class="small mb-3" style="color: rgba(248,250,252,0.75);">
+                        Thiết kế tinh tế, giao đúng hẹn. Cam kết hoa tươi mới mỗi ngày và chăm sóc khách hàng tận tâm.
                     </p>
-                    <p class="small">
-                        <strong>Phone:</strong> {{ $hotline }}<br>
-                        <strong>Email:</strong> {{ $supportEmail }}<br>
-                        <strong>Địa chỉ:</strong> {{ $address }}
-                    </p>
-                </div>
-
-                <div class="col-lg-3 col-md-6 mb-4">
-                    <h5 class="fw-bold">HƯƠNG HOA XINH</h5>
-                    <ul class="list-unstyled small">
-                        <li><a href="#">Giới thiệu</a></li>
-                        <li><a href="#">Liên hệ</a></li>
-                        <li><a href="#">Tin tức - Blog</a></li>
-                        <li><a href="#">Chính sách bảo mật</a></li>
-                    </ul>
-                </div>
-
-                <div class="col-lg-3 col-md-6 mb-4">
-                    <h5 class="fw-bold">SẢN PHẨM</h5>
-                    <ul class="list-unstyled small">
-                        <li><a href="#">Bó hoa tươi</a></li>
-                        <li><a href="#">Giỏ hoa</a></li>
-                        <li><a href="#">Hoa cắm tay</a></li>
-                        <li><a href="#">Hoa lan</a></li>
-                        <li><a href="#">Hoa theo chủ đề</a></li>
-                    </ul>
-                </div>
-
-                <div class="col-lg-3 col-md-6 mb-4">
-                    <h5 class="fw-bold">ĐỊA CHỈ CÁC SHOP</h5>
-                    <ul class="list-unstyled small">
-                        <li><strong>Chi nhánh 1:</strong> 456 Nguyễn Văn Khối, Gò Vấp</li>
-                        <li><strong>Chi nhánh 2:</strong> 123 Phan Huy Ích, Phú Nhuận</li>
-                        <li><strong>Chi nhánh 3:</strong> 789 Lê Đức Thọ, Quận 7</li>
-                    </ul>
-                    <p class="mt-3 text-danger small">
-                        <strong>Đặt hoa trực tuyến:</strong><br>
-                        0859 773 086 (Zalo/Phone)
-                    </p>
-                </div>
-            </div>
-
-            <div class="row mt-4 border-top pt-4">
-                <div class="col-md-6">
-                    <h6 class="fw-bold">LIÊN KẾT</h6>
-                    <div class="d-flex gap-3">
-                        <a href="{{ $facebookUrl ?: '#' }}" class="text-dark" target="_blank" rel="noopener"><i class="fab fa-facebook fa-2x"></i></a>
-                        <a href="{{ $instagramUrl ?: '#' }}" class="text-dark" target="_blank" rel="noopener"><i class="fab fa-instagram fa-2x"></i></a>
-                        <a href="{{ $youtubeUrl ?: '#' }}" class="text-dark" target="_blank" rel="noopener"><i class="fab fa-youtube fa-2x"></i></a>
-                        <a href="{{ $zaloUrl ?: '#' }}" class="text-dark" target="_blank" rel="noopener"><i class="fas fa-comment-dots fa-2x"></i></a>
+                    <div class="d-flex flex-wrap gap-2">
+                        <span class="badge rounded-pill text-bg-success bg-opacity-75">Giao nội thành</span>
+                        <span class="badge rounded-pill text-bg-info bg-opacity-50">Ưu đãi mỗi tuần</span>
+                        <span class="badge rounded-pill text-bg-light text-dark bg-opacity-10 border border-light border-opacity-25">Đổi trả trong 24h*</span>
                     </div>
                 </div>
-                <div class="col-md-6 text-md-end">
-                    <img src="https://cdn4793.cdn4s2.com/media/logo/1_1.webp" alt="Bộ Công Thương" height="50">
+
+                <div class="col-lg-2 col-md-6">
+                    <div class="footer-heading">Khám phá</div>
+                    <ul class="list-unstyled small mb-0">
+                        <li class="mb-2"><a href="{{ route('home') }}">Trang chủ</a></li>
+                        <li class="mb-2"><a href="{{ route('shop') }}">Cửa hàng</a></li>
+                        <li class="mb-2"><a href="{{ route('about') }}">Giới thiệu</a></li>
+                        <li class="mb-2"><a href="{{ route('blog.index') }}">Blog</a></li>
+                        <li class="mb-2"><a href="{{ route('vouchers') }}">Mã giảm giá</a></li>
+                    </ul>
+                </div>
+
+                <div class="col-lg-3 col-md-6">
+                    <div class="footer-heading">Hỗ trợ</div>
+                    <ul class="list-unstyled small mb-0">
+                        <li class="mb-2"><a href="{{ route('contact') }}">Liên hệ</a></li>
+                        <li class="mb-2"><a href="{{ route('cart.index') }}">Giỏ hàng</a></li>
+                        @auth
+                            <li class="mb-2"><a href="{{ route('orders.history') }}">Đơn hàng của tôi</a></li>
+                            <li class="mb-2"><a href="{{ route('profile.edit') }}">Tài khoản</a></li>
+                        @else
+                            <li class="mb-2"><a href="{{ route('login') }}">Đăng nhập</a></li>
+                        @endauth
+                    </ul>
+                </div>
+
+                <div class="col-lg-3 col-md-6">
+                    <div class="footer-heading">Liên hệ</div>
+                    <ul class="list-unstyled small mb-3">
+                        <li class="mb-2"><i class="fas fa-phone me-2 text-success"></i>{{ $hotline }}</li>
+                        <li class="mb-2"><i class="fas fa-envelope me-2 text-info"></i>{{ $supportEmail }}</li>
+                        <li class="mb-2"><i class="fas fa-location-dot me-2 text-danger"></i>{{ $address }}</li>
+                    </ul>
+                    <div class="d-flex gap-3 fs-5">
+                        <a href="{{ $facebookUrl ?: '#' }}" target="_blank" rel="noopener" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+                        <a href="{{ $instagramUrl ?: '#' }}" target="_blank" rel="noopener" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="{{ $youtubeUrl ?: '#' }}" target="_blank" rel="noopener" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+                        <a href="{{ $zaloUrl ?: '#' }}" target="_blank" rel="noopener" aria-label="Zalo"><i class="fas fa-comment-dots"></i></a>
+                    </div>
                 </div>
             </div>
 
-            <div class="text-center small text-muted mt-4 border-top pt-3">
-                {{ $siteSettings['copyright_text'] ?? ('Copyright © ' . now()->year . ' ' . $siteName . '. All rights reserved.') }}
+            <div class="row align-items-center mt-5 pt-4 border-top border-light border-opacity-10">
+                <div class="col-md-6 small" style="color: rgba(248,250,252,0.55);">
+                    {{ $siteSettings['copyright_text'] ?? ('© ' . now()->year . ' ' . $siteName . '. All rights reserved.') }}
+                </div>
+                <div class="col-md-6 text-md-end mt-3 mt-md-0">
+                    <img src="https://cdn4793.cdn4s2.com/media/logo/1_1.webp" alt="Đã thông báo Bộ Công Thương" height="44" class="opacity-75">
+                </div>
             </div>
         </div>
     </footer>
@@ -372,28 +477,59 @@
     
     <script>
         // Khởi tạo cart count
+        updateCartCount();
         @auth
-            updateCartCount();
             updateWishlistCount();
         @endauth
 
+        document.addEventListener('visibilitychange', function () {
+            if (document.visibilityState === 'visible') {
+                updateCartCount();
+                @auth
+                    updateWishlistCount();
+                @endauth
+            }
+        });
+        window.addEventListener('pageshow', function (ev) {
+            if (ev.persisted) {
+                updateCartCount();
+                @auth
+                    updateWishlistCount();
+                @endauth
+            }
+        });
+
         // Cập nhật số lượng giỏ hàng
         function updateCartCount() {
-            @auth
-                fetch('/cart/get', {
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    const cartCountBadge = document.getElementById('cartCount');
-                    if (cartCountBadge) {
-                        const quantity = data.items.reduce((sum, item) => sum + item.quantity, 0);
-                        cartCountBadge.textContent = quantity > 0 ? quantity : '0';
-                    }
-                });
-            @endauth
+            const cartCountBadge = document.getElementById('cartCount');
+            fetch('{{ url('/cart/get') }}', {
+                credentials: 'same-origin',
+                cache: 'no-store',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '{{ csrf_token() }}'
+                }
+            })
+            .then(function (response) {
+                if (!response.ok) throw new Error('cart');
+                return response.json();
+            })
+            .then(function (data) {
+                if (!cartCountBadge) return;
+                let qty = 0;
+                if (data.quantity_sum !== undefined && data.quantity_sum !== null) {
+                    qty = parseInt(data.quantity_sum, 10) || 0;
+                } else if (Array.isArray(data.items)) {
+                    qty = data.items.reduce(function (sum, item) {
+                        return sum + (parseInt(item.quantity, 10) || 0);
+                    }, 0);
+                }
+                cartCountBadge.textContent = qty > 0 ? String(qty) : '0';
+            })
+            .catch(function () {
+                if (cartCountBadge) cartCountBadge.textContent = '0';
+            });
         }
 
         // Cập nhật số lượng wishlist
@@ -421,50 +557,44 @@
 
         // Add to cart function
         function addToCart(productId, quantity = 1, unitPrice = null, variant = null) {
-            @auth
-                const payload = {
-                    product_id: productId,
-                    quantity: parseInt(quantity),
-                };
+            const payload = {
+                product_id: productId,
+                quantity: parseInt(quantity),
+            };
 
-                if (unitPrice !== null) {
-                    payload.unit_price = parseFloat(unitPrice);
+            if (unitPrice !== null) {
+                payload.unit_price = parseFloat(unitPrice);
+            }
+
+            if (variant) {
+                payload.variant = variant;
+            }
+
+            fetch('/cart/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
-
-                if (variant) {
-                    payload.variant = variant;
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    updateCartCount();
+                    showNotification(data.message, 'success');
+                } else {
+                    showNotification(data.message, 'error');
                 }
-
-                fetch('/cart/add', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                    },
-                    body: JSON.stringify(payload)
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('Response:', data);
-                    if (data.success) {
-                        updateCartCount();
-                        showNotification(data.message, 'success');
-                    } else {
-                        showNotification(data.message, 'error');
-                    }
-                })
-                .catch(error => {
-                    console.error('Fetch error:', error);
-                    showNotification('Lỗi: ' + error.message, 'error');
-                });
-            @else
-                window.location.href = '{{ route("login") }}';
-            @endauth
+            })
+            .catch(error => {
+                showNotification('Lỗi: ' + error.message, 'error');
+            });
         }
 
         // Toggle wishlist
@@ -521,21 +651,18 @@
         // Hiển thị notification
         function showNotification(message, type = 'info') {
             const alertClass = type === 'success' ? 'alert-success' : (type === 'error' ? 'alert-danger' : 'alert-info');
+            const id = 'hh-toast-' + Date.now();
             const alertHtml = `
-                <div class="alert ${alertClass} alert-dismissible fade show position-fixed top-0 end-0 m-3" role="alert" style="z-index: 9999; max-width: 400px;">
+                <div id="${id}" class="hh-toast alert ${alertClass} alert-dismissible fade show position-fixed top-0 end-0 m-3" role="alert" style="z-index: 9999; max-width: 400px;">
                     ${message}
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             `;
             document.body.insertAdjacentHTML('beforeend', alertHtml);
-            
-            // Auto dismiss sau 3 giây
-            setTimeout(() => {
-                const alert = document.querySelector('.alert-dismissible');
-                if (alert) {
-                    alert.remove();
-                }
-            }, 3000);
+            setTimeout(function () {
+                const el = document.getElementById(id);
+                if (el) el.remove();
+            }, 3500);
         }
     </script>
 </body>

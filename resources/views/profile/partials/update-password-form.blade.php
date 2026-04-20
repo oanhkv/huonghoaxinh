@@ -1,17 +1,15 @@
-<div class="card">
-    <div class="card-header">{{ __('Update Password') }}</div>
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-light fw-bold">Đổi mật khẩu</div>
 
     <div class="card-body">
-        <div class="mb-3">
-            {{ __('Ensure your account is using a long, random password to stay secure.') }}
-        </div>
+        <div class="mb-3 text-muted">Nên dùng mật khẩu dài, có chữ hoa/chữ thường/số để tăng bảo mật.</div>
         <form method="POST" action="{{ route('password.update') }}">
             @csrf
             @method('put')
 
             <div class="row mb-3">
                 <label for="password" class="col-md-4 col-form-label text-md-end">
-                    {{ __('Current Password') }}
+                    Mật khẩu hiện tại
                 </label>
 
                 <div class="col-md-6">
@@ -27,7 +25,7 @@
 
             <div class="row mb-3">
                 <label for="password" class="col-md-4 col-form-label text-md-end">
-                    {{ __('New Password') }}
+                    Mật khẩu mới
                 </label>
 
                 <div class="col-md-6">
@@ -43,7 +41,7 @@
 
             <div class="row mb-3">
                 <label for="password_confirmation" class="col-md-4 col-form-label text-md-end">
-                    {{ __('Confirm Password') }}
+                    Xác nhận mật khẩu mới
                 </label>
 
                 <div class="col-md-6">
@@ -60,10 +58,10 @@
             <div class="row mb-0">
                 <div class="col-md-6 offset-md-4">
                     <button type="submit" class="btn btn-primary">
-                        {{ __('Save') }}
+                        Cập nhật mật khẩu
                     </button>
                     @if (session('status') === 'password-updated')
-                        <span class="m-1 fade-out">{{ __('Saved.') }}</span>
+                        <span class="m-1 fade-out">Đã lưu.</span>
                     @endif
                 </div>
             </div>

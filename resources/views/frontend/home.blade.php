@@ -110,6 +110,32 @@
         </button>
     </div>
 
+    <!-- Danh mục nổi bật -->
+    <section class="home-category-strip py-5">
+        <div class="container">
+            <div class="text-center mb-4 reveal-up">
+                <span class="badge rounded-pill bg-success bg-opacity-10 text-success px-3 py-2 mb-2">Bộ sưu tập</span>
+                <h2 class="fw-bold mb-2">Chọn theo dịp &amp; phong cách</h2>
+                <p class="text-muted mb-0">Danh mục được chọn lọc để tôn sản phẩm — giao diện giống sàn thương mại chuyên nghiệp.</p>
+            </div>
+            <div class="row g-3 g-lg-4">
+                @foreach($mainCategories->take(8) as $cat)
+                    <div class="col-6 col-md-4 col-lg-3 reveal-up">
+                        <a href="{{ route('shop') }}?category={{ $cat->slug }}" class="text-decoration-none cat-pill-card d-block h-100">
+                            <div class="cat-pill-inner p-4 h-100 text-center">
+                                <div class="cat-pill-icon mb-3 mx-auto">
+                                    <i class="fas fa-spa"></i>
+                                </div>
+                                <h6 class="fw-bold text-dark mb-1">{{ $cat->name }}</h6>
+                                <p class="small text-muted mb-0">Xem sản phẩm</p>
+                            </div>
+                        </a>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </section>
+
     <style>
         @keyframes slideInDown {
             from {
@@ -180,11 +206,46 @@
         #bannerCarousel .carousel-control-next-icon {
             filter: drop-shadow(0 2px 5px rgba(0,0,0,0.3));
         }
+
+        .home-category-strip {
+            background: linear-gradient(180deg, rgba(241, 245, 249, 0.9) 0%, #fff 100%);
+        }
+        .cat-pill-card .cat-pill-inner {
+            border-radius: 20px;
+            background: #fff;
+            border: 1px solid rgba(15, 23, 42, 0.06);
+            box-shadow: 0 14px 40px rgba(15, 23, 42, 0.06);
+            transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
+        }
+        .cat-pill-card:hover .cat-pill-inner {
+            transform: translateY(-6px);
+            box-shadow: 0 22px 50px rgba(25, 135, 84, 0.15);
+            border-color: rgba(25, 135, 84, 0.35);
+        }
+        .cat-pill-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 18px;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(135deg, rgba(25,135,84,0.15), rgba(14,165,233,0.12));
+            color: #198754;
+            font-size: 1.35rem;
+        }
+        .reveal-up {
+            opacity: 0;
+            transform: translateY(28px);
+            transition: opacity 0.65s ease, transform 0.65s ease;
+        }
+        .reveal-up.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
     </style>
 
     <!-- About Section -->
     <div class="container py-5">
-        <div class="row align-items-center">
+        <div class="row align-items-center reveal-up">
             <div class="col-lg-6">
                 <h2 class="fw-bold mb-4">SHOP HOA TƯƠI UY TÍN VÀ SÁNG TẠO</h2>
                 <p class="lead">
@@ -206,11 +267,11 @@
     <!-- Featured Products -->
     <div class="bg-light py-5">
         <div class="container">
-            <h2 class="text-center mb-5 fw-bold">SẢN PHẨM NỔI BẬT</h2>
+            <h2 class="text-center mb-5 fw-bold reveal-up">SẢN PHẨM NỔI BẬT</h2>
             <div class="row">
                 @foreach($featuredProducts as $product)
                     <!-- Card sản phẩm với hiệu ứng hover -->
-                    <div class="col-lg-3 col-md-4 col-6 mb-4">
+                    <div class="col-lg-3 col-md-4 col-6 mb-4 reveal-up">
                         <div class="product-card position-relative">
                             <div class="card h-100 border-0 shadow-sm overflow-hidden">
                                 @if($product->image)
@@ -312,7 +373,7 @@
 @else
 <div class="container py-5">
     <div class="text-center mb-5">
-        <h2 class="fw-bold">SẢN PHẨM NỐI BẬT</h2>
+        <h2 class="fw-bold">SẢN PHẨM NỔI BẬT</h2>
         <p class="text-muted">Những bó hoa được khách hàng yêu thích nhất</p>
     </div>
 
@@ -360,10 +421,50 @@
     </div>
 </div>
 @endauth
+
+    @if(isset($customerReviews) && $customerReviews->count() > 0)
+    <section class="py-5 bg-white border-top border-bottom">
+        <div class="container">
+            <div class="text-center mb-5 reveal-up">
+                <span class="badge rounded-pill bg-success bg-opacity-10 text-success px-3 py-2 mb-2">Khách hàng nói gì</span>
+                <h2 class="fw-bold mb-2">Feedback từ người đã mua</h2>
+                <p class="text-muted mb-0">Đánh giá thật sau khi trải nghiệm sản phẩm — minh bạch và gần gũi.</p>
+            </div>
+            <div class="row g-4">
+                @foreach($customerReviews as $rev)
+                    <div class="col-md-6 col-lg-3 reveal-up">
+                        <div class="card h-100 border-0 shadow-sm rounded-4 p-4 feedback-card">
+                            <div class="d-flex align-items-center gap-2 mb-3">
+                                <div class="rounded-circle bg-success bg-opacity-10 text-success d-flex align-items-center justify-content-center fw-bold" style="width:44px;height:44px;">
+                                    {{ Str::substr($rev->user->name ?? 'K', 0, 1) }}
+                                </div>
+                                <div>
+                                    <div class="fw-semibold small mb-0">{{ Str::limit($rev->user->name ?? 'Khách hàng', 24) }}</div>
+                                    <div class="text-muted" style="font-size:0.75rem;">{{ Str::limit($rev->product->name ?? '', 28) }}</div>
+                                </div>
+                            </div>
+                            <div class="mb-2">
+                                @for($i = 1; $i <= 5; $i++)
+                                    <i class="fas fa-star {{ $i <= $rev->rating ? 'text-warning' : 'text-muted' }} small"></i>
+                                @endfor
+                            </div>
+                            <p class="small text-muted mb-0">{{ Str::limit($rev->comment, 140) }}</p>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </section>
+    <style>
+        .feedback-card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .feedback-card:hover { transform: translateY(-6px); box-shadow: 0 20px 40px rgba(15,23,42,0.1) !important; }
+    </style>
+    @endif
+
     <!-- ==================== TẠI SAO CHỌN HƯƠNG HOA XINH ==================== -->
     <div class="bg-light py-5 mt-5">
         <div class="container">
-            <div class="text-center mb-5">
+            <div class="text-center mb-5 reveal-up">
                 <h2 class="fw-bold">TẠI SAO CHỌN SẢN PHẨM CỦA CHÚNG TÔI?</h2>
                 <p class="lead text-muted">
                     Không chỉ đơn thuần là cửa hàng hoa tươi, Hương Hoa Xinh còn là nơi kết nối cảm xúc -
@@ -438,4 +539,22 @@
         </div>
     </div>
 
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var els = document.querySelectorAll('.reveal-up');
+    if (!('IntersectionObserver' in window)) {
+        els.forEach(function (el) { el.classList.add('is-visible'); });
+        return;
+    }
+    var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+                io.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+    els.forEach(function (el) { io.observe(el); });
+});
+</script>
 @endsection
