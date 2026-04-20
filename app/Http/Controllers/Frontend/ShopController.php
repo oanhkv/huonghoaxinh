@@ -66,7 +66,7 @@ class ShopController extends Controller
 
     $products = $query->paginate(12);
 
-    $categories = Category::whereNull('parent_id')->with('children')->get();
+    $categories = Category::whereNull('parent_id')->with('children')->withCount('products')->get();
 
     return view('frontend.shop', compact('products', 'categories'));
 }
