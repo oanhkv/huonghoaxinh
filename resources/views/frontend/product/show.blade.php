@@ -126,26 +126,52 @@
                 </div>
             @endif
 
-            <!-- Add to Cart & Actions -->
-            <div class="d-flex gap-3 mb-4 p-3 rounded-4 border bg-white shadow-sm">
-                <div style="width: 150px;">
-                    <label for="quantity" class="form-label small">Số lượng</label>
-                    <div class="input-group">
-                        <button class="btn btn-outline-secondary btn-sm" type="button" id="decreaseQty">
-                            <i class="fas fa-minus"></i>
-                        </button>
-                        <input type="number" id="quantity" class="form-control form-control-sm text-center" 
-                               value="1" min="1" max="{{ $product->stock }}">
-                        <button class="btn btn-outline-secondary btn-sm" type="button" id="increaseQty">
-                            <i class="fas fa-plus"></i>
-                        </button>
+            <!-- Add to Cart & Order Now (style like Trạm Hoa) -->
+            <div class="p-3 p-lg-4 rounded-4 border bg-white shadow-sm mb-4">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                    <div class="small text-muted">
+                        <span class="me-3"><i class="fas fa-barcode me-1"></i>Mã: <strong>#{{ $product->id }}</strong></span>
+                        <span><i class="fas fa-boxes-stacked me-1"></i>
+                            @if($product->stock > 0)
+                                <strong class="text-success">Còn hàng</strong>
+                            @else
+                                <strong class="text-danger">Hết hàng</strong>
+                            @endif
+                        </span>
+                    </div>
+                    <div class="small text-muted">
+                        <i class="fas fa-circle-info me-1"></i>Hoa tươi thủ công, thành phẩm có thể tương đồng 80–90% so với ảnh.
                     </div>
                 </div>
-                <div class="flex-grow-1">
-                    <label class="form-label small d-block">&nbsp;</label>
-                    <button class="btn btn-success btn-lg w-100" id="addToCartBtn" {{ $product->stock <= 0 ? 'disabled' : '' }}>
-                        <i class="fas fa-shopping-cart me-2"></i>Thêm vào giỏ hàng
-                    </button>
+
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label for="quantity" class="form-label small fw-semibold">Số lượng</label>
+                        <div class="input-group">
+                            <button class="btn btn-outline-secondary" type="button" id="decreaseQty" aria-label="Giảm số lượng">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <input type="number" id="quantity" class="form-control text-center"
+                                   value="1" min="1" max="{{ max(1, (int) $product->stock) }}">
+                            <button class="btn btn-outline-secondary" type="button" id="increaseQty" aria-label="Tăng số lượng">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="col-md-8">
+                        <div class="d-grid d-md-flex gap-2">
+                            <button class="btn btn-success btn-lg flex-fill" id="orderNowBtn" {{ $product->stock <= 0 ? 'disabled' : '' }}>
+                                <i class="fas fa-bag-shopping me-2"></i>Đặt hoa
+                            </button>
+                            <button class="btn btn-outline-success btn-lg flex-fill" id="addToCartBtn" {{ $product->stock <= 0 ? 'disabled' : '' }}>
+                                <i class="fas fa-cart-plus me-2"></i>Thêm vào giỏ hàng
+                            </button>
+                        </div>
+                        <div class="form-text mt-2">
+                            Chọn “Đặt hoa” để đi thẳng đến thanh toán. “Thêm vào giỏ” để mua tiếp sản phẩm khác.
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -445,16 +471,12 @@
         }
     });
 
-    // Add to cart
-    document.getElementById('addToCartBtn').addEventListener('click', function() {
-        const quantity = parseInt(document.getElementById('quantity').value);
-        const selectedSize = document.getElementById('selectedSize').value;
-        
-        // Check if size is required
+    function getSelectedVariant() {
+        const selectedSize = document.getElementById('selectedSize')?.value || '';
         @if($product->sizes && count($product->sizes) > 0)
             if (!selectedSize) {
-                alert('Vui lòng chọn kích cỡ trước khi thêm vào giỏ hàng!');
-                return;
+                alert('Vui lòng chọn kích cỡ trước khi tiếp tục!');
+                return null;
             }
         @endif
 
@@ -466,7 +488,51 @@
             variant = sizeData.size || '';
         }
 
-        addToCart({{ $product->id }}, quantity, unitPrice, variant);
+        return { unitPrice, variant };
+    }
+
+    function postAddToCartThen(nextUrl = null) {
+        const quantity = parseInt(document.getElementById('quantity').value || '1', 10) || 1;
+        const selected = getSelectedVariant();
+        if (!selected) return;
+
+        const payload = {
+            product_id: {{ $product->id }},
+            quantity: quantity,
+            unit_price: selected.unitPrice,
+            variant: selected.variant,
+        };
+
+        fetch('/cart/add', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name=\"csrf-token\"]').content
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(r => r.json().then(data => ({ ok: r.ok, data })))
+        .then(({ ok, data }) => {
+            if (!ok || !data.success) {
+                alert(data.message || 'Không thể thêm vào giỏ hàng.');
+                return;
+            }
+            if (typeof updateCartCount === 'function') updateCartCount();
+            if (typeof showNotification === 'function') showNotification(data.message || 'Đã thêm vào giỏ hàng', 'success');
+            if (nextUrl) window.location.href = nextUrl;
+        })
+        .catch(() => alert('Có lỗi khi thêm vào giỏ hàng. Vui lòng thử lại.'));
+    }
+
+    // Add to cart
+    document.getElementById('addToCartBtn').addEventListener('click', function() {
+        postAddToCartThen(null);
+    });
+
+    // Order now (go checkout)
+    document.getElementById('orderNowBtn').addEventListener('click', function() {
+        postAddToCartThen('{{ route('checkout.index') }}');
     });
 
     // Add to wishlist
@@ -543,6 +609,17 @@
     .product-main-image:hover {
         transform: translateY(-4px);
         box-shadow: 0 22px 44px rgba(15, 23, 42, 0.12) !important;
+    }
+
+    #orderNowBtn.btn-success {
+        box-shadow: 0 14px 30px rgba(25, 135, 84, 0.22);
+    }
+    #orderNowBtn.btn-success:hover {
+        box-shadow: 0 18px 40px rgba(25, 135, 84, 0.28);
+        transform: translateY(-1px);
+    }
+    #addToCartBtn.btn-outline-success:hover {
+        transform: translateY(-1px);
     }
     .rating-input {
         display: flex;

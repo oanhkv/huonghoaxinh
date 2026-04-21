@@ -348,6 +348,7 @@
                     </div>
                 </li>
                 <li><a href="{{ route('admin.orders.index') }}" class="nav-link {{ request()->routeIs('admin.orders.*') ? 'active' : '' }}"><i class="fas fa-shopping-bag me-2"></i> Quản lý Đơn hàng</a></li>
+                <li><a href="{{ route('admin.contact-messages.index') }}" class="nav-link {{ request()->routeIs('admin.contact-messages.*') ? 'active' : '' }}"><i class="fas fa-inbox me-2"></i> Tin nhắn liên hệ</a></li>
                 <li><a href="{{ route('admin.reviews.index') }}" class="nav-link {{ request()->routeIs('admin.reviews.*') ? 'active' : '' }}"><i class="fas fa-star-half-alt me-2"></i> Đánh giá</a></li>
                 <li><a href="{{ route('admin.vouchers.index') }}" class="nav-link {{ request()->routeIs('admin.vouchers.*') ? 'active' : '' }}"><i class="fas fa-ticket-alt me-2"></i> Mã giảm giá</a></li>
                 <li class="account-group">
