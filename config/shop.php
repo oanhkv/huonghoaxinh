@@ -19,4 +19,9 @@ return [
     */
     'shipping_fallback_km' => (float) env('SHOP_SHIPPING_FALLBACK_KM', 12),
 
+    /*
+    | Email nhận liên hệ/hỏi đáp từ form website.
+    */
+    'contact_inbox_email' => env('SHOP_CONTACT_INBOX_EMAIL', 'oanhvu1503@gmail.com'),
+
 ];
