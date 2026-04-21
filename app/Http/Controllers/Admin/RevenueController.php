@@ -13,7 +13,9 @@ use Maatwebsite\Excel\Facades\Excel;
 class RevenueController extends Controller
 {
     private const MAX_DAYS_FOR_DAILY_CHART = 120;
+
     private const MAX_POINTS_DAILY = 60;
+
     private const MAX_POINTS_MONTHLY = 36;
 
     public function index(Request $request)
@@ -102,7 +104,7 @@ class RevenueController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $fileName = 'bao-cao-doanh-thu-' . $startDate->format('Ymd') . '-' . $endDate->format('Ymd') . '.xlsx';
+        $fileName = 'bao-cao-doanh-thu-'.$startDate->format('Ymd').'-'.$endDate->format('Ymd').'.xlsx';
 
         return Excel::download(new RevenueReportExport($orders), $fileName);
     }
@@ -174,7 +176,7 @@ class RevenueController extends Controller
                 continue;
             }
 
-            $newLabels[] = reset($labelChunk) . ' - ' . end($labelChunk);
+            $newLabels[] = reset($labelChunk).' - '.end($labelChunk);
             $newValues[] = round(array_sum($valueChunk), 2);
         }
 

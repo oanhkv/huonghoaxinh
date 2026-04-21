@@ -9,12 +9,12 @@ use App\Models\OrderItem;
 use App\Models\Voucher;
 use App\Services\PaymentQrService;
 use App\Services\ShippingDistanceService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
-use Carbon\Carbon;
 
 class PaymentController extends Controller
 {
@@ -131,7 +131,7 @@ class PaymentController extends Controller
 
         $order = new Order([
             'user_id' => Auth::id(),
-            'order_code' => 'HD' . strtoupper(Str::random(6)),
+            'order_code' => 'HD'.strtoupper(Str::random(6)),
             'total_amount' => $total,
             'status' => $request->payment_method === 'card' ? 'pending' : 'cod',
             'shipping_address' => $request->shipping_address,
@@ -272,7 +272,7 @@ class PaymentController extends Controller
             abort(403);
         }
 
-        if (!in_array($order->status, ['paid', 'cod'])) {
+        if (! in_array($order->status, ['paid', 'cod'])) {
             return back()->with('error', 'Chỉ đơn hàng đã thanh toán hoặc COD mới có thể xác nhận nhận hàng.');
         }
 
@@ -303,7 +303,7 @@ class PaymentController extends Controller
                 ->where('is_active', true)
                 ->first();
 
-            if (!$voucher) {
+            if (! $voucher) {
                 throw ValidationException::withMessages([
                     'voucher_code' => 'Mã giảm giá không hợp lệ.',
                 ]);
@@ -363,11 +363,11 @@ class PaymentController extends Controller
         if ($note) {
             $pieces[] = trim($note);
         }
-        $pieces[] = 'Khoang cach tu cua hang: ' . rtrim(rtrim(number_format($distanceKm, 2, '.', ''), '0'), '.') . ' km'
-            . ($geocoded ? '' : ' (uoc tinh, khong geocode duoc dia chi)');
-        $pieces[] = 'Phi ship: ' . number_format($shipping, 0, ',', '.') . ' VND';
+        $pieces[] = 'Khoang cach tu cua hang: '.rtrim(rtrim(number_format($distanceKm, 2, '.', ''), '0'), '.').' km'
+            .($geocoded ? '' : ' (uoc tinh, khong geocode duoc dia chi)');
+        $pieces[] = 'Phi ship: '.number_format($shipping, 0, ',', '.').' VND';
         if ($voucherCode) {
-            $pieces[] = 'Voucher: ' . $voucherCode . ' (-' . number_format($discount, 0, ',', '.') . ' VND)';
+            $pieces[] = 'Voucher: '.$voucherCode.' (-'.number_format($discount, 0, ',', '.').' VND)';
         }
 
         return implode(' | ', $pieces);

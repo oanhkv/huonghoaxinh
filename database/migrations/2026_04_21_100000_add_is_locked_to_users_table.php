@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            if (!Schema::hasColumn('users', 'is_locked')) {
+            if (! Schema::hasColumn('users', 'is_locked')) {
                 $table->boolean('is_locked')->default(false);
             }
         });

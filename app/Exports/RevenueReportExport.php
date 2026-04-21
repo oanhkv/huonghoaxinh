@@ -8,15 +8,13 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 
 class RevenueReportExport implements FromCollection, WithHeadings
 {
-    public function __construct(private readonly Collection $orders)
-    {
-    }
+    public function __construct(private readonly Collection $orders) {}
 
     public function collection()
     {
         return $this->orders->map(function ($order) {
             return [
-                'order_code' => $order->order_code ?? ('HH' . $order->id),
+                'order_code' => $order->order_code ?? ('HH'.$order->id),
                 'customer_name' => $order->user->name ?? 'Khach vang lai',
                 'status' => $order->status,
                 'total_amount' => (float) $order->total_amount,

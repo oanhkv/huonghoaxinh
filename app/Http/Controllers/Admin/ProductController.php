@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
 use App\Exports\ProductsExport;
+use App\Http\Controllers\Controller;
 use App\Imports\ProductsImport;
-use App\Models\Product;
 use App\Models\Category;
+use App\Models\Product;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 
 class ProductController extends Controller
@@ -20,7 +20,7 @@ class ProductController extends Controller
 
         // Tìm kiếm theo tên
         if ($request->filled('search')) {
-            $query->where('name', 'like', '%' . $request->search . '%');
+            $query->where('name', 'like', '%'.$request->search.'%');
         }
 
         // Lọc theo danh mục
@@ -38,6 +38,7 @@ class ProductController extends Controller
     public function create()
     {
         $categories = Category::all();
+
         return view('admin.products.create', compact('categories'));
     }
 
@@ -52,7 +53,7 @@ class ProductController extends Controller
             'sizes' => 'nullable|json',
         ]);
 
-        $product = new Product();
+        $product = new Product;
         $product->name = $request->name;
         $product->slug = Str::slug($request->name);
         $product->description = $request->description;
@@ -69,20 +70,21 @@ class ProductController extends Controller
 
         if ($request->hasFile('image')) {
             $image = $request->file('image');
-            $filename = time() . '.' . $image->getClientOriginalExtension();
+            $filename = time().'.'.$image->getClientOriginalExtension();
             $image->storeAs('public/products', $filename);
-            $product->image = 'products/' . $filename;
+            $product->image = 'products/'.$filename;
         }
 
         $product->save();
 
         return redirect()->route('admin.products.index')
-                         ->with('success', 'Thêm sản phẩm thành công!');
+            ->with('success', 'Thêm sản phẩm thành công!');
     }
 
     public function edit(Product $product)
     {
         $categories = Category::all();
+
         return view('admin.products.edit', compact('product', 'categories'));
     }
 
@@ -113,34 +115,34 @@ class ProductController extends Controller
         if ($request->hasFile('image')) {
             // Xóa ảnh cũ
             if ($product->image) {
-                Storage::delete('public/' . $product->image);
+                Storage::delete('public/'.$product->image);
             }
             $image = $request->file('image');
-            $filename = time() . '.' . $image->getClientOriginalExtension();
+            $filename = time().'.'.$image->getClientOriginalExtension();
             $image->storeAs('public/products', $filename);
-            $product->image = 'products/' . $filename;
+            $product->image = 'products/'.$filename;
         }
 
         $product->save();
 
         return redirect()->route('admin.products.index')
-                         ->with('success', 'Cập nhật sản phẩm thành công!');
+            ->with('success', 'Cập nhật sản phẩm thành công!');
     }
 
     public function destroy(Product $product)
     {
         if ($product->image) {
-            Storage::delete('public/' . $product->image);
+            Storage::delete('public/'.$product->image);
         }
         $product->delete();
 
         return redirect()->route('admin.products.index')
-                         ->with('success', 'Xóa sản phẩm thành công!');
+            ->with('success', 'Xóa sản phẩm thành công!');
     }
 
     public function export()
     {
-        return Excel::download(new ProductsExport(), 'products-' . now()->format('Ymd_His') . '.xlsx');
+        return Excel::download(new ProductsExport, 'products-'.now()->format('Ymd_His').'.xlsx');
     }
 
     public function import(Request $request)
@@ -149,18 +151,18 @@ class ProductController extends Controller
             'file' => 'required|file|mimes:xlsx,xls,csv',
         ]);
 
-        $import = new ProductsImport();
+        $import = new ProductsImport;
         Excel::import($import, $request->file('file'));
 
         if (! empty($import->getErrors())) {
             return redirect()
                 ->route('admin.products.index')
-                ->with('warning', 'Da import ' . $import->getImportedCount() . ' san pham, co loi o mot so dong.')
+                ->with('warning', 'Da import '.$import->getImportedCount().' san pham, co loi o mot so dong.')
                 ->with('import_errors', $import->getErrors());
         }
 
         return redirect()
             ->route('admin.products.index')
-            ->with('success', 'Import thanh cong ' . $import->getImportedCount() . ' san pham.');
+            ->with('success', 'Import thanh cong '.$import->getImportedCount().' san pham.');
     }
 }

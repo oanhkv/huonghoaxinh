@@ -1,32 +1,29 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ProfileController;
-
-// ==================== FRONTEND ====================
-use App\Http\Controllers\Frontend\HomeController;
-use App\Http\Controllers\Frontend\ShopController;
-
-// ==================== ADMIN ====================
-use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\Admin\ProductController;
-use App\Http\Controllers\Admin\CategoryController;
-use App\Http\Controllers\Admin\OrderController;
-use App\Http\Controllers\Admin\ReviewController;
-use App\Http\Controllers\Admin\VoucherController;
-use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\AdminProfileController;
+use App\Http\Controllers\Admin\CategoryController;
+// ==================== FRONTEND ====================
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\OrderController;
+// ==================== ADMIN ====================
+use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\RevenueController;
+use App\Http\Controllers\Admin\ReviewController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\VoucherController;
 use App\Http\Controllers\Admin\WebsiteSettingController;
-
+use App\Http\Controllers\Frontend\BlogController;
+use App\Http\Controllers\Frontend\CartController;
+use App\Http\Controllers\Frontend\HomeController;
+use App\Http\Controllers\Frontend\PaymentController;
 // ==================== FRONTEND ROUTES ====================
 use App\Http\Controllers\Frontend\ProductController as FrontendProductController;
-use App\Http\Controllers\Frontend\CartController;
-use App\Http\Controllers\Frontend\WishlistController;
-use App\Http\Controllers\Frontend\BlogController;
-use App\Http\Controllers\Frontend\PaymentController;
-use App\Http\Controllers\Frontend\ShippingEstimateController;
 use App\Http\Controllers\Frontend\ProductReviewController;
+use App\Http\Controllers\Frontend\ShippingEstimateController;
+use App\Http\Controllers\Frontend\ShopController;
+use App\Http\Controllers\Frontend\WishlistController;
+use App\Http\Controllers\ProfileController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/shop', [ShopController::class, 'index'])->name('shop');
@@ -41,7 +38,7 @@ Route::get('/about', [HomeController::class, 'about'])->name('about');
 Route::get('/vouchers', [HomeController::class, 'vouchers'])->name('vouchers');
 
 // Debug Cart (chỉ khi auth)
-Route::middleware('auth')->get('/debug-cart', function() {
+Route::middleware('auth')->get('/debug-cart', function () {
     return view('frontend.debug-cart');
 });
 

@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Product;
+use Illuminate\Database\Seeder;
 
 class ProductSeeder extends Seeder
 {
@@ -18,7 +18,7 @@ class ProductSeeder extends Seeder
                 'stock' => 30,
                 'category_id' => 2,
                 'is_featured' => true,
-                'image' => 'products/hoa-hong-do.jpg'
+                'image' => 'products/hoa-hong-do.jpg',
             ],
             [
                 'name' => 'Giỏ Hoa Sinh Nhật Sang Trọng',
@@ -28,7 +28,7 @@ class ProductSeeder extends Seeder
                 'stock' => 20,
                 'category_id' => 1,
                 'is_featured' => true,
-                'image' => 'products/gio-hoa-sinh-nhat.jpg'
+                'image' => 'products/gio-hoa-sinh-nhat.jpg',
             ],
             // Bạn có thể thêm nhiều sản phẩm nữa...
         ];

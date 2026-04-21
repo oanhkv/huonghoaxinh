@@ -2,11 +2,11 @@
 
 namespace App\Providers;
 
-use App\Models\WebsiteSetting;
 use App\Models\Category;
+use App\Models\WebsiteSetting;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
+use Illuminate\Support\ServiceProvider;
 use Throwable;
 
 class AppServiceProvider extends ServiceProvider
@@ -27,6 +27,7 @@ class AppServiceProvider extends ServiceProvider
         try {
             if (! Schema::hasTable('website_settings')) {
                 View::share('siteSettings', []);
+
                 return;
             }
 
@@ -44,8 +45,8 @@ class AppServiceProvider extends ServiceProvider
         try {
             if (Schema::hasTable('categories')) {
                 $mainCategories = Category::whereNull('parent_id')
-                                         ->with('children')
-                                         ->get();
+                    ->with('children')
+                    ->get();
                 View::share('mainCategories', $mainCategories);
             }
         } catch (Throwable $e) {
@@ -53,4 +54,3 @@ class AppServiceProvider extends ServiceProvider
         }
     }
 }
-

@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
-use App\Models\Wishlist;
 use App\Models\Product;
+use App\Models\Wishlist;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -16,7 +16,7 @@ class WishlistController extends Controller
     public function index()
     {
         $wishlists = Auth::user()->wishlists()->with('product')->paginate(12);
-        
+
         return view('frontend.wishlist.index', [
             'wishlists' => $wishlists,
         ]);
@@ -33,7 +33,7 @@ class WishlistController extends Controller
             ]);
 
             $product = Product::findOrFail($request->product_id);
-            
+
             // Check if already in wishlist
             $exists = Wishlist::where('user_id', Auth::id())
                 ->where('product_id', $request->product_id)
@@ -59,7 +59,7 @@ class WishlistController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Lỗi: ' . $e->getMessage(),
+                'message' => 'Lỗi: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -85,7 +85,7 @@ class WishlistController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Lỗi: ' . $e->getMessage(),
+                'message' => 'Lỗi: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -106,6 +106,7 @@ class WishlistController extends Controller
 
             if ($exists) {
                 $exists->delete();
+
                 return response()->json([
                     'success' => true,
                     'message' => 'Đã xóa khỏi yêu thích',
@@ -116,6 +117,7 @@ class WishlistController extends Controller
                     'user_id' => Auth::id(),
                     'product_id' => $request->product_id,
                 ]);
+
                 return response()->json([
                     'success' => true,
                     'message' => 'Đã thêm vào yêu thích ❤️',
@@ -125,7 +127,7 @@ class WishlistController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Lỗi: ' . $e->getMessage(),
+                'message' => 'Lỗi: '.$e->getMessage(),
             ], 500);
         }
     }

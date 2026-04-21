@@ -56,7 +56,7 @@ class AuthenticatedSessionController extends Controller
 
     private function mergeGuestCartToUserCart(): void
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return;
         }
 
@@ -76,7 +76,7 @@ class AuthenticatedSessionController extends Controller
             }
 
             $product = Product::find($productId);
-            if (!$product) {
+            if (! $product) {
                 continue;
             }
 

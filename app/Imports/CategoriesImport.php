@@ -22,6 +22,7 @@ class CategoriesImport implements ToCollection, WithHeadingRow
 
             if ($name === '') {
                 $this->errors[] = "Dong {$line}: thieu ten danh muc.";
+
                 continue;
             }
 
@@ -31,6 +32,7 @@ class CategoriesImport implements ToCollection, WithHeadingRow
             if ($parentName !== '') {
                 if (Str::lower($parentName) === Str::lower($name)) {
                     $this->errors[] = "Dong {$line}: parent_name khong duoc trung voi name.";
+
                     continue;
                 }
 
@@ -38,6 +40,7 @@ class CategoriesImport implements ToCollection, WithHeadingRow
 
                 if (! $parent) {
                     $this->errors[] = "Dong {$line}: khong tim thay danh muc cha '{$parentName}'.";
+
                     continue;
                 }
 
@@ -48,6 +51,7 @@ class CategoriesImport implements ToCollection, WithHeadingRow
 
             if ($slug === '') {
                 $this->errors[] = "Dong {$line}: khong tao duoc slug tu ten danh muc.";
+
                 continue;
             }
 

@@ -10,7 +10,7 @@ class Category extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name', 'slug', 'description', 'image', 'parent_id'
+        'name', 'slug', 'description', 'image', 'parent_id',
     ];
 
     // Quan hệ cha - con

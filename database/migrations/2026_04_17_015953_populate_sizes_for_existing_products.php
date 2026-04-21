@@ -1,8 +1,6 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
@@ -16,7 +14,7 @@ return new class extends Migration
         $defaultSizes = json_encode([
             ['size' => '40cm', 'price' => 0],
             ['size' => '50cm', 'price' => 50000],
-            ['size' => '60cm', 'price' => 100000]
+            ['size' => '60cm', 'price' => 100000],
         ]);
 
         DB::table('products')

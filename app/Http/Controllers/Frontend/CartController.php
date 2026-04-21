@@ -48,7 +48,7 @@ class CartController extends Controller
             if ($existingQuantity + $request->quantity > $product->stock) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Số lượng vượt quá kho. Kho hiện có: ' . $product->stock
+                    'message' => 'Số lượng vượt quá kho. Kho hiện có: '.$product->stock,
                 ], 422);
             }
 
@@ -64,7 +64,7 @@ class CartController extends Controller
                     if ($product->stock < $newQuantity) {
                         return response()->json([
                             'success' => false,
-                            'message' => 'Số lượng vượt quá kho'
+                            'message' => 'Số lượng vượt quá kho',
                         ], 422);
                     }
 
@@ -97,7 +97,7 @@ class CartController extends Controller
                     if ($product->stock < $newQuantity) {
                         return response()->json([
                             'success' => false,
-                            'message' => 'Số lượng vượt quá kho'
+                            'message' => 'Số lượng vượt quá kho',
                         ], 422);
                     }
 
@@ -120,12 +120,12 @@ class CartController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Đã thêm sản phẩm vào giỏ hàng',
-                'cart_count' => $cartCount
+                'cart_count' => $cartCount,
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Lỗi: ' . $e->getMessage()
+                'message' => 'Lỗi: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -143,10 +143,10 @@ class CartController extends Controller
                 ->with('product')
                 ->first();
 
-            if (!$cartItem) {
+            if (! $cartItem) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Không có quyền cập nhật'
+                    'message' => 'Không có quyền cập nhật',
                 ], 403);
             }
 
@@ -158,7 +158,7 @@ class CartController extends Controller
             if ($otherQuantity + $request->quantity > $cartItem->product->stock) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Số lượng vượt quá kho'
+                    'message' => 'Số lượng vượt quá kho',
                 ], 422);
             }
 
@@ -167,7 +167,7 @@ class CartController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Cập nhật số lượng thành công',
-                'subtotal' => $cartItem->quantity * $cartItem->price
+                'subtotal' => $cartItem->quantity * $cartItem->price,
             ]);
         }
 
@@ -177,17 +177,17 @@ class CartController extends Controller
         if ($itemIndex === false) {
             return response()->json([
                 'success' => false,
-                'message' => 'Không tìm thấy sản phẩm trong giỏ'
+                'message' => 'Không tìm thấy sản phẩm trong giỏ',
             ], 404);
         }
 
         $cartItem = $guestCart[$itemIndex];
         $product = Product::find($cartItem['product_id']);
 
-        if (!$product) {
+        if (! $product) {
             return response()->json([
                 'success' => false,
-                'message' => 'Sản phẩm không còn tồn tại'
+                'message' => 'Sản phẩm không còn tồn tại',
             ], 422);
         }
 
@@ -199,7 +199,7 @@ class CartController extends Controller
         if ($otherQuantity + $request->quantity > $product->stock) {
             return response()->json([
                 'success' => false,
-                'message' => 'Số lượng vượt quá kho'
+                'message' => 'Số lượng vượt quá kho',
             ], 422);
         }
 
@@ -209,7 +209,7 @@ class CartController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Cập nhật số lượng thành công',
-            'subtotal' => ((int) $request->quantity) * ((float) $cartItem['price'])
+            'subtotal' => ((int) $request->quantity) * ((float) $cartItem['price']),
         ]);
     }
 
@@ -221,10 +221,10 @@ class CartController extends Controller
                 ->where('user_id', Auth::id())
                 ->first();
 
-            if (!$cartItem) {
+            if (! $cartItem) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Không có quyền xóa'
+                    'message' => 'Không có quyền xóa',
                 ], 403);
             }
 
@@ -237,7 +237,7 @@ class CartController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Đã xóa sản phẩm khỏi giỏ hàng'
+            'message' => 'Đã xóa sản phẩm khỏi giỏ hàng',
         ]);
     }
 
@@ -252,7 +252,7 @@ class CartController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Đã xóa tất cả sản phẩm trong giỏ hàng'
+            'message' => 'Đã xóa tất cả sản phẩm trong giỏ hàng',
         ]);
     }
 
@@ -286,13 +286,13 @@ class CartController extends Controller
         ]);
 
         $voucher = Voucher::where('code', $request->voucher_code)
-                          ->where('is_active', true)
-                          ->first();
+            ->where('is_active', true)
+            ->first();
 
-        if (!$voucher) {
+        if (! $voucher) {
             return response()->json([
                 'success' => false,
-                'message' => 'Mã giảm giá không hợp lệ'
+                'message' => 'Mã giảm giá không hợp lệ',
             ], 422);
         }
 
@@ -314,7 +314,7 @@ class CartController extends Controller
             'success' => true,
             'message' => 'Áp dụng mã giảm giá thành công',
             'discount' => $discount,
-            'total' => $total
+            'total' => $total,
         ]);
     }
 
@@ -330,7 +330,7 @@ class CartController extends Controller
 
         return collect($guestCart)->map(function ($item) use ($products) {
             $product = $products->get((int) ($item['product_id'] ?? 0));
-            if (!$product) {
+            if (! $product) {
                 return null;
             }
 

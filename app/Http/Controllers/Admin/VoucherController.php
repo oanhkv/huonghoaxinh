@@ -63,7 +63,7 @@ class VoucherController extends Controller
     public function update(Request $request, Voucher $voucher)
     {
         $validated = $request->validate([
-            'code' => 'required|string|max:50|unique:vouchers,code,' . $voucher->id,
+            'code' => 'required|string|max:50|unique:vouchers,code,'.$voucher->id,
             'name' => 'required|string|max:255',
             'type' => 'required|in:percent,fixed',
             'value' => 'required|numeric|min:0.01',

@@ -19,7 +19,7 @@ class Product extends Model
         'category_id',
         'is_featured',
         'is_active',
-        'sizes'
+        'sizes',
     ];
 
     protected $casts = [

@@ -57,7 +57,7 @@ class ShippingDistanceService
         $shop = $this->shopCoordinates();
         $dest = $this->geocodeAddress($customerAddress);
 
-        if (!$dest) {
+        if (! $dest) {
             return [
                 'distance_km' => round((float) config('shop.shipping_fallback_km', 12), 2),
                 'geocoded' => false,
@@ -88,7 +88,7 @@ class ShippingDistanceService
         try {
             $response = Http::timeout(12)
                 ->withHeaders([
-                    'User-Agent' => config('app.name', 'HuongHoaXinh') . '/1.0 (contact@local)',
+                    'User-Agent' => config('app.name', 'HuongHoaXinh').'/1.0 (contact@local)',
                 ])
                 ->get('https://nominatim.openstreetmap.org/search', [
                     'q' => $query,
@@ -96,12 +96,12 @@ class ShippingDistanceService
                     'limit' => 1,
                 ]);
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 return null;
             }
 
             $rows = $response->json();
-            if (!is_array($rows) || !isset($rows[0]['lat'], $rows[0]['lon'])) {
+            if (! is_array($rows) || ! isset($rows[0]['lat'], $rows[0]['lon'])) {
                 return null;
             }
 

@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
-use App\Models\Product;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -32,16 +31,16 @@ class DashboardController extends Controller
         for ($i = 6; $i >= 0; $i--) {
             $date = Carbon::today()->subDays($i);
             $labels[] = $date->format('d/m');
-            
+
             $revenue = Order::whereDate('created_at', $date)->sum('total_amount');
             $revenueLast7Days[] = round($revenue / 1000000, 1); // Đơn vị triệu đồng
         }
 
         // Đơn hàng gần đây
         $recentOrders = Order::with('user')
-                            ->latest()
-                            ->take(5)
-                            ->get();
+            ->latest()
+            ->take(5)
+            ->get();
 
         return view('admin.dashboard', compact(
             'totalOrdersToday',

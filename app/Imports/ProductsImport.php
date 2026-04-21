@@ -25,11 +25,13 @@ class ProductsImport implements ToCollection, WithHeadingRow
 
             if ($name === '') {
                 $this->errors[] = "Dong {$line}: thieu ten san pham.";
+
                 continue;
             }
 
             if ($categoryName === '') {
                 $this->errors[] = "Dong {$line}: thieu category_name.";
+
                 continue;
             }
 
@@ -37,6 +39,7 @@ class ProductsImport implements ToCollection, WithHeadingRow
 
             if (! $category) {
                 $this->errors[] = "Dong {$line}: khong tim thay danh muc '{$categoryName}'.";
+
                 continue;
             }
 
@@ -44,6 +47,7 @@ class ProductsImport implements ToCollection, WithHeadingRow
 
             if ($slug === '') {
                 $this->errors[] = "Dong {$line}: khong tao duoc slug tu ten san pham.";
+
                 continue;
             }
 

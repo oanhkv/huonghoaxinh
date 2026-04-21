@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\BlogCategory;
 use App\Models\BlogPost;
+use Illuminate\Database\Seeder;
 
 class BlogPostSeeder extends Seeder
 {

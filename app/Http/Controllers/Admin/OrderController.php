@@ -15,11 +15,11 @@ class OrderController extends Controller
         // Tìm kiếm theo mã đơn hoặc tên khách
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('order_code', 'like', "%{$search}%")
-                  ->orWhereHas('user', function($q) use ($search) {
-                      $q->where('name', 'like', "%{$search}%");
-                  });
+                    ->orWhereHas('user', function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%");
+                    });
             });
         }
 
@@ -36,18 +36,19 @@ class OrderController extends Controller
     public function show(Order $order)
     {
         $order->load('orderItems.product');
+
         return view('admin.orders.show', compact('order'));
     }
 
     public function updateStatus(Request $request, Order $order)
     {
         $request->validate([
-            'status' => 'required|in:pending,confirmed,shipping,completed,cancelled'
+            'status' => 'required|in:pending,confirmed,shipping,completed,cancelled',
         ]);
 
         $order->update(['status' => $request->status]);
 
         return redirect()->back()
-                         ->with('success', 'Cập nhật trạng thái đơn hàng thành công!');
+            ->with('success', 'Cập nhật trạng thái đơn hàng thành công!');
     }
 }

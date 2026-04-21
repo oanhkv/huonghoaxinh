@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
@@ -15,7 +16,7 @@ class UserController extends Controller
     public function create()
     {
         return view('admin.users.form', [
-            'user' => new User(),
+            'user' => new User,
             'mode' => 'create',
             'isAdminForm' => true,
             'hasPhone' => Schema::hasColumn('users', 'phone'),
@@ -94,7 +95,7 @@ class UserController extends Controller
         ]);
     }
 
-    private function buildUsersQuery(Request $request, bool $admins): \Illuminate\Database\Eloquent\Builder
+    private function buildUsersQuery(Request $request, bool $admins): Builder
     {
         $query = User::query();
 
@@ -221,7 +222,7 @@ class UserController extends Controller
         $user->delete();
 
         return redirect()->route('admin.users.index')
-                         ->with('success', 'Xóa khách hàng thành công!');
+            ->with('success', 'Xóa khách hàng thành công!');
     }
 
     private function isAdmin(User $user): bool

@@ -17,7 +17,7 @@ class WebsiteSettingController extends Controller
             'support_email' => 'support@huonghoaxinh.vn',
             'hotline' => '0859 773 086',
             'address' => 'Quận Gò Vấp, TP.HCM',
-            'copyright_text' => 'Copyright © ' . now()->year . ' Hương Hoa Xinh. All rights reserved.',
+            'copyright_text' => 'Copyright © '.now()->year.' Hương Hoa Xinh. All rights reserved.',
             'hero_title' => 'HOA TƯƠI - ĐẸP - SANG TRỌNG',
             'hero_subtitle' => 'Giao hoa tận nơi • Tươi lâu • Thiết kế theo yêu cầu',
             'hero_button_text' => 'MUA HOA NGAY',

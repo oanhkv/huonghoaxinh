@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
 use App\Exports\CategoriesExport;
+use App\Http\Controllers\Controller;
 use App\Imports\CategoriesImport;
 use App\Models\Category;
 use Illuminate\Http\Request;
@@ -15,9 +15,9 @@ class CategoryController extends Controller
     public function index()
     {
         $categories = Category::withCount('products')
-                              ->with('children')
-                              ->whereNull('parent_id')
-                              ->paginate(10);
+            ->with('children')
+            ->whereNull('parent_id')
+            ->paginate(10);
 
         return view('admin.categories.index', compact('categories'));
     }
@@ -25,6 +25,7 @@ class CategoryController extends Controller
     public function create()
     {
         $parentCategories = Category::whereNull('parent_id')->get();
+
         return view('admin.categories.create', compact('parentCategories'));
     }
 
@@ -43,21 +44,22 @@ class CategoryController extends Controller
         ]);
 
         return redirect()->route('admin.categories.index')
-                         ->with('success', 'Thêm danh mục thành công!');
+            ->with('success', 'Thêm danh mục thành công!');
     }
 
     public function edit(Category $category)
     {
         $parentCategories = Category::whereNull('parent_id')
-                                    ->where('id', '!=', $category->id)
-                                    ->get();
+            ->where('id', '!=', $category->id)
+            ->get();
+
         return view('admin.categories.edit', compact('category', 'parentCategories'));
     }
 
     public function update(Request $request, Category $category)
     {
         $request->validate([
-            'name' => 'required|string|max:255|unique:categories,name,' . $category->id,
+            'name' => 'required|string|max:255|unique:categories,name,'.$category->id,
             'parent_id' => 'nullable|exists:categories,id',
         ]);
 
@@ -69,7 +71,7 @@ class CategoryController extends Controller
         ]);
 
         return redirect()->route('admin.categories.index')
-                         ->with('success', 'Cập nhật danh mục thành công!');
+            ->with('success', 'Cập nhật danh mục thành công!');
     }
 
     public function destroy(Category $category)
@@ -81,12 +83,12 @@ class CategoryController extends Controller
         $category->delete();
 
         return redirect()->route('admin.categories.index')
-                         ->with('success', 'Xóa danh mục thành công!');
+            ->with('success', 'Xóa danh mục thành công!');
     }
 
     public function export()
     {
-        return Excel::download(new CategoriesExport(), 'categories-' . now()->format('Ymd_His') . '.xlsx');
+        return Excel::download(new CategoriesExport, 'categories-'.now()->format('Ymd_His').'.xlsx');
     }
 
     public function import(Request $request)
@@ -95,18 +97,18 @@ class CategoryController extends Controller
             'file' => 'required|file|mimes:xlsx,xls,csv',
         ]);
 
-        $import = new CategoriesImport();
+        $import = new CategoriesImport;
         Excel::import($import, $request->file('file'));
 
         if (! empty($import->getErrors())) {
             return redirect()
                 ->route('admin.categories.index')
-                ->with('warning', 'Da import ' . $import->getImportedCount() . ' danh muc, co loi o mot so dong.')
+                ->with('warning', 'Da import '.$import->getImportedCount().' danh muc, co loi o mot so dong.')
                 ->with('import_errors', $import->getErrors());
         }
 
         return redirect()
             ->route('admin.categories.index')
-            ->with('success', 'Import thanh cong ' . $import->getImportedCount() . ' danh muc.');
+            ->with('success', 'Import thanh cong '.$import->getImportedCount().' danh muc.');
     }
 }

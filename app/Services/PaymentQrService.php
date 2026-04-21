@@ -47,7 +47,7 @@ class PaymentQrService
         ]), '', '&', PHP_QUERY_RFC3986);
 
         return [
-            'image_url' => $base . ($query !== '' ? '?' . $query : ''),
+            'image_url' => $base.($query !== '' ? '?'.$query : ''),
             'provider' => 'vietqr',
             'add_info' => $addInfo,
             'amount' => $amount,

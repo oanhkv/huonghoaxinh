@@ -13,16 +13,16 @@ class ProductController extends Controller
     public function show($slug)
     {
         $product = Product::where('slug', $slug)
-                          ->where('is_active', true)
-                          ->with(['category', 'visibleReviews.user'])
-                          ->firstOrFail();
+            ->where('is_active', true)
+            ->with(['category', 'visibleReviews.user'])
+            ->firstOrFail();
 
         // Lấy sản phẩm liên quan (cùng danh mục)
         $relatedProducts = Product::where('category_id', $product->category_id)
-                                  ->where('id', '!=', $product->id)
-                                  ->where('is_active', true)
-                                  ->take(4)
-                                  ->get();
+            ->where('id', '!=', $product->id)
+            ->where('is_active', true)
+            ->take(4)
+            ->get();
 
         $canReview = false;
         $userReview = null;
