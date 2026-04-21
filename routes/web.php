@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ProfileController;
 
 // ==================== FRONTEND ====================
 use App\Http\Controllers\Frontend\HomeController;
@@ -24,6 +25,8 @@ use App\Http\Controllers\Frontend\CartController;
 use App\Http\Controllers\Frontend\WishlistController;
 use App\Http\Controllers\Frontend\BlogController;
 use App\Http\Controllers\Frontend\PaymentController;
+use App\Http\Controllers\Frontend\ShippingEstimateController;
+use App\Http\Controllers\Frontend\ProductReviewController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/shop', [ShopController::class, 'index'])->name('shop');
@@ -42,8 +45,8 @@ Route::middleware('auth')->get('/debug-cart', function() {
     return view('frontend.debug-cart');
 });
 
-// Giỏ hàng routes (bắt buộc đăng nhập)
-Route::middleware('auth')->prefix('cart')->name('cart.')->group(function () {
+// Giỏ hàng routes (hỗ trợ cả khách và người dùng đã đăng nhập)
+Route::prefix('cart')->name('cart.')->group(function () {
     Route::get('/', [CartController::class, 'index'])->name('index');
     Route::post('add', [CartController::class, 'add'])->name('add');
     Route::post('{cart}/update', [CartController::class, 'update'])->name('update');
@@ -63,14 +66,22 @@ Route::middleware('auth')->prefix('wishlist')->name('wishlist.')->group(function
 });
 
 Route::middleware('auth')->group(function () {
+    Route::post('/shipping/estimate', [ShippingEstimateController::class, 'estimate'])->name('shipping.estimate');
+    Route::post('/reviews', [ProductReviewController::class, 'store'])->name('reviews.store');
+
     Route::get('/checkout', [PaymentController::class, 'checkout'])->name('checkout.index');
     Route::post('/checkout', [PaymentController::class, 'process'])->name('checkout.process');
-    Route::get('/checkout/verify', [PaymentController::class, 'verify'])->name('checkout.verify');
-    Route::post('/checkout/verify', [PaymentController::class, 'submitVerify'])->name('checkout.verify.submit');
     Route::get('/checkout/success', [PaymentController::class, 'success'])->name('checkout.success');
+    Route::get('/checkout/card/{order}', [PaymentController::class, 'cardPayment'])->name('checkout.card');
+    Route::post('/checkout/card/{order}/confirm', [PaymentController::class, 'confirmCardPayment'])->name('checkout.card.confirm');
     Route::get('/orders/history', [PaymentController::class, 'history'])->name('orders.history');
     Route::post('/orders/{order}/cancel', [PaymentController::class, 'cancel'])->name('orders.cancel');
     Route::post('/orders/{order}/confirm-received', [PaymentController::class, 'confirmReceived'])->name('orders.confirmReceived');
+
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::post('/profile/lock', [ProfileController::class, 'lock'])->name('profile.lock');
 });
 
 // ==================== ADMIN ROUTES ====================
