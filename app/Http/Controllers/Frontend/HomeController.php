@@ -8,8 +8,10 @@ use App\Models\ContactMessage;
 use App\Models\Product;
 use App\Models\Review;
 use App\Models\Voucher;
+use App\Mail\ContactMessageReceived;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
 
 class HomeController extends Controller
@@ -81,7 +83,16 @@ class HomeController extends Controller
             'message' => 'required|string',
         ]);
 
-        ContactMessage::create($request->only(['name', 'email', 'phone', 'subject', 'message']));
+        $msg = ContactMessage::create($request->only(['name', 'email', 'phone', 'subject', 'message']));
+
+        try {
+            $inbox = (string) config('shop.contact_inbox_email');
+            Mail::to($inbox)
+                ->replyTo($msg->email, $msg->name)
+                ->send(new ContactMessageReceived($msg));
+        } catch (\Throwable $e) {
+            // vẫn lưu DB để admin xử lý, nhưng không làm fail request cho khách
+        }
 
         return redirect()->route('contact')->with('success', 'Cảm ơn bạn! Chúng tôi đã nhận được yêu cầu liên hệ và sẽ phản hồi sớm.');
     }

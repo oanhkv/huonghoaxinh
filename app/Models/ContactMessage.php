@@ -12,5 +12,18 @@ class ContactMessage extends Model
         'subject',
         'message',
         'phone',
+        'read_at',
+        'replied_at',
+        'status',
     ];
+
+    protected $casts = [
+        'read_at' => 'datetime',
+        'replied_at' => 'datetime',
+    ];
+
+    public function replies()
+    {
+        return $this->hasMany(ContactReply::class);
+    }
 }
