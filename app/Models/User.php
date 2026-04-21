@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use HasRoles, Notifiable;
+    use HasFactory, HasRoles, Notifiable;
 
     protected $fillable = [
         'name',
@@ -16,6 +17,7 @@ class User extends Authenticatable
         'password',
         'phone',
         'address',
+        'is_locked',
     ];
 
     protected $hidden = [
@@ -28,6 +30,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_locked' => 'boolean',
         ];
     }
 
@@ -46,6 +49,9 @@ class User extends Authenticatable
         return $this->hasMany(Review::class);
     }
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
     public function wishlists()
     {
         return $this->hasMany(Wishlist::class);

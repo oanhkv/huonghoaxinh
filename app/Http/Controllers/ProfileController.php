@@ -16,7 +16,7 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): View
     {
-        return view('profile.edit', [
+        return view('frontend.account.index', [
             'user' => $request->user(),
         ]);
     }
@@ -56,5 +56,23 @@ class ProfileController extends Controller
         $request->session()->regenerateToken();
 
         return Redirect::to('/');
+    }
+
+    public function lock(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'password' => ['required', 'current_password'],
+        ], [], [
+            'password' => 'mật khẩu',
+        ]);
+
+        $user = $request->user();
+        $user->update(['is_locked' => true]);
+
+        Auth::guard('web')->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return Redirect::to('/')->with('success', 'Tài khoản của bạn đã được khóa thành công.');
     }
 }
