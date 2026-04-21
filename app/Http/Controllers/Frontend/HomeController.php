@@ -10,34 +10,45 @@ use App\Models\Review;
 use App\Models\Voucher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 
 class HomeController extends Controller
 {
     public function index()
     {
-        $featuredProducts = Product::where('is_featured', true)
-            ->where('is_active', true)
-            ->take(8)
-            ->get();
+        $featuredProducts = collect();
+        if (Schema::hasTable('products')) {
+            $featuredProducts = Product::where('is_featured', true)
+                ->where('is_active', true)
+                ->take(8)
+                ->get();
+        }
 
-        $mainCategories = Category::whereNull('parent_id')
-            ->with('children')
-            ->get();
+        $mainCategories = collect();
+        if (Schema::hasTable('categories')) {
+            $mainCategories = Category::whereNull('parent_id')
+                ->with('children')
+                ->get();
+        }
 
         // Get user wishlists if authenticated
-        $userWishlists = Auth::check()
-            ? Auth::user()->wishlists()
+        $userWishlists = collect();
+        if (Auth::check() && Schema::hasTable('wishlists')) {
+            $userWishlists = Auth::user()->wishlists()
                 ->with('product')
                 ->take(8)
-                ->get()
-            : collect([]);
+                ->get();
+        }
 
-        $customerReviews = Review::query()
-            ->where('is_visible', true)
-            ->with(['user', 'product'])
-            ->latest()
-            ->take(8)
-            ->get();
+        $customerReviews = collect();
+        if (Schema::hasTable('reviews')) {
+            $customerReviews = Review::query()
+                ->where('is_visible', true)
+                ->with(['user', 'product'])
+                ->latest()
+                ->take(8)
+                ->get();
+        }
 
         return view('frontend.home', compact('featuredProducts', 'mainCategories', 'userWishlists', 'customerReviews'));
     }
@@ -50,9 +61,12 @@ class HomeController extends Controller
 
     public function contact()
     {
-        $mainCategories = Category::whereNull('parent_id')
-            ->with('children')
-            ->get();
+        $mainCategories = collect();
+        if (Schema::hasTable('categories')) {
+            $mainCategories = Category::whereNull('parent_id')
+                ->with('children')
+                ->get();
+        }
 
         return view('frontend.contact', compact('mainCategories'));
     }
@@ -75,15 +89,20 @@ class HomeController extends Controller
     // Trang Mã giảm giá
     public function vouchers()
     {
-        $vouchers = Voucher::where('is_active', true)
-            ->where('starts_at', '<=', now())
-            ->where('ends_at', '>=', now())
-            ->orderBy('created_at', 'desc')
-            ->paginate(12);
+        $vouchers = Schema::hasTable('vouchers')
+            ? Voucher::where('is_active', true)
+                ->where('starts_at', '<=', now())
+                ->where('ends_at', '>=', now())
+                ->orderBy('created_at', 'desc')
+                ->paginate(12)
+            : new \Illuminate\Pagination\LengthAwarePaginator([], 0, 12);
 
-        $mainCategories = Category::whereNull('parent_id')
-            ->with('children')
-            ->get();
+        $mainCategories = collect();
+        if (Schema::hasTable('categories')) {
+            $mainCategories = Category::whereNull('parent_id')
+                ->with('children')
+                ->get();
+        }
 
         return view('frontend.vouchers', compact('vouchers', 'mainCategories'));
     }
