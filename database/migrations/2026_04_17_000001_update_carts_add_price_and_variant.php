@@ -12,8 +12,16 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('carts', function (Blueprint $table) {
+            // Drop foreign keys first to prevent error 1553 in MySQL when dropping the unique index
+            $table->dropForeign(['user_id']);
+            $table->dropForeign(['product_id']);
+
             // Remove the old unique constraint across product_id and user_id
             $table->dropUnique(['user_id', 'product_id']);
+
+            // Re-add foreign keys
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
 
             // Add price and variant fields
             $table->unsignedBigInteger('price')->default(0)->after('quantity');
