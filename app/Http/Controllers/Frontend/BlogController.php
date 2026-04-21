@@ -12,17 +12,31 @@ class BlogController extends Controller
     public function index(Request $request)
     {
         $categories = BlogCategory::withCount('posts')->orderBy('name')->get();
-        $posts = BlogPost::with('category')->where('is_active', true);
 
-        if ($request->filled('category')) {
-            $posts->whereHas('category', function ($query) use ($request) {
-                $query->where('slug', $request->category);
-            });
-        }
+        $featuredPost = BlogPost::with('category')
+            ->where('is_active', true)
+            ->when($request->filled('category'), function ($q) use ($request) {
+                $q->whereHas('category', function ($query) use ($request) {
+                    $query->where('slug', $request->category);
+                });
+            })
+            ->orderByDesc('published_at')
+            ->first();
 
-        $posts = $posts->orderByDesc('published_at')->paginate(9)->withQueryString();
+        $posts = BlogPost::with('category')->where('is_active', true)
+            ->when($request->filled('category'), function ($q) use ($request) {
+                $q->whereHas('category', function ($query) use ($request) {
+                    $query->where('slug', $request->category);
+                });
+            })
+            ->when($featuredPost && ! $request->filled('category'), function ($q) use ($featuredPost) {
+                $q->where('id', '!=', $featuredPost->id);
+            })
+            ->orderByDesc('published_at')
+            ->paginate(9)
+            ->withQueryString();
 
-        return view('frontend.blog.index', compact('posts', 'categories'));
+        return view('frontend.blog.index', compact('posts', 'categories', 'featuredPost'));
     }
 
     public function show(BlogPost $post)

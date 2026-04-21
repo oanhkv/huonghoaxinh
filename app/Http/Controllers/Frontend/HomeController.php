@@ -8,7 +8,9 @@ use App\Models\Category;
 use App\Models\Wishlist;
 use App\Models\ContactMessage;
 use App\Models\Voucher;
+use App\Models\Review;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 
 class HomeController extends Controller
@@ -25,15 +27,21 @@ class HomeController extends Controller
                                   ->get();
 
         // Get user wishlists if authenticated
-        $userWishlists = [];
-        if (Auth::check()) {
-            $userWishlists = Auth::user()->wishlists()
-                                ->with('product')
-                                ->take(8)
-                                ->get();
-        }
+        $userWishlists = Auth::check()
+            ? Auth::user()->wishlists()
+                ->with('product')
+                ->take(8)
+                ->get()
+            : collect([]);
 
-        return view('frontend.home', compact('featuredProducts', 'mainCategories', 'userWishlists'));
+        $customerReviews = Review::query()
+            ->where('is_visible', true)
+            ->with(['user', 'product'])
+            ->latest()
+            ->take(8)
+            ->get();
+
+        return view('frontend.home', compact('featuredProducts', 'mainCategories', 'userWishlists', 'customerReviews'));
     }
 
     // Trang Giới thiệu về chúng tôi
