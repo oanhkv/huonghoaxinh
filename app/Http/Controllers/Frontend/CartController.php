@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Cart;
 use App\Models\Product;
 use App\Models\Voucher;
+use App\Services\OrderInventoryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
@@ -17,6 +18,8 @@ class CartController extends Controller
     public function index()
     {
         $cartItems = $this->getCartItems();
+        $stockIssue = app(OrderInventoryService::class)->findStockIssue($cartItems);
+        $hasStockIssue = $stockIssue !== null;
 
         $subtotal = $cartItems->sum(function ($item) {
             return $item->quantity * $item->price;
@@ -25,7 +28,7 @@ class CartController extends Controller
         $shipping = 0; // Mặc định miễn phí
         $total = $subtotal + $shipping;
 
-        return view('frontend.cart.index', compact('cartItems', 'subtotal', 'shipping', 'total'));
+        return view('frontend.cart.index', compact('cartItems', 'subtotal', 'shipping', 'total', 'stockIssue', 'hasStockIssue'));
     }
 
     // Thêm sản phẩm vào giỏ hàng
@@ -40,6 +43,18 @@ class CartController extends Controller
             ]);
 
             $product = Product::findOrFail($request->product_id);
+            if (! $product->is_active) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Sản phẩm hiện đã ngừng bán.',
+                ], 422);
+            }
+            if ((int) $product->stock <= 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Sản phẩm hiện đã hết hàng.',
+                ], 422);
+            }
             $price = $request->unit_price !== null ? $request->unit_price : $product->price;
             $variant = trim($request->variant ?? '');
 
@@ -188,6 +203,12 @@ class CartController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Sản phẩm không còn tồn tại',
+            ], 422);
+        }
+        if (! $product->is_active || (int) $product->stock <= 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Sản phẩm hiện đã hết hàng hoặc ngừng bán',
             ], 422);
         }
 

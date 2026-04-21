@@ -7,7 +7,10 @@
     $status = $order->status;
     $statusClass = match ($status) {
         'completed' => 'success',
+        'delivered' => 'success',
         'shipping' => 'primary',
+        'paid' => 'info',
+        'cod' => 'secondary',
         'cancelled' => 'danger',
         'confirmed' => 'info',
         default => 'warning',
@@ -69,6 +72,9 @@
                                 <option value="confirmed" {{ $status === 'confirmed' ? 'selected' : '' }}>Đã xác nhận</option>
                                 <option value="shipping" {{ $status === 'shipping' ? 'selected' : '' }}>Đang giao</option>
                                 <option value="completed" {{ $status === 'completed' ? 'selected' : '' }}>Hoàn thành</option>
+                                <option value="delivered" {{ $status === 'delivered' ? 'selected' : '' }}>Đã giao thành công</option>
+                                <option value="paid" {{ $status === 'paid' ? 'selected' : '' }}>Đã thanh toán</option>
+                                <option value="cod" {{ $status === 'cod' ? 'selected' : '' }}>Chờ thu COD</option>
                                 <option value="cancelled" {{ $status === 'cancelled' ? 'selected' : '' }}>Đã hủy</option>
                             </select>
                             @error('status')

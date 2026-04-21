@@ -27,13 +27,30 @@
         </div>
     @endif
 
+    <div class="product-hero mb-4 p-4 p-lg-5 rounded-4">
+        <div class="row g-4 align-items-center">
+            <div class="col-lg-8">
+                <span class="badge rounded-pill text-bg-light mb-2">{{ $product->category->name }}</span>
+                <h1 class="fw-bold mb-2">{{ $product->name }}</h1>
+                <p class="mb-0 text-muted">{{ Str::limit($product->description, 180) }}</p>
+            </div>
+            <div class="col-lg-4">
+                <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
+                    <span class="chip"><i class="fas fa-shield-heart me-1"></i>Cam kết chất lượng</span>
+                    <span class="chip"><i class="fas fa-truck-fast me-1"></i>Giao nhanh Hà Nội</span>
+                    <span class="chip"><i class="fas fa-bag-shopping me-1"></i>Kiểm tra trước khi nhận</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Product Detail -->
-    <div class="row mb-5">
+    <div class="row mb-5 g-4">
         <!-- Product Image -->
         <div class="col-lg-5 mb-4 mb-lg-0">
-            <div class="bg-light rounded-3 overflow-hidden">
+            <div class="bg-light rounded-4 overflow-hidden shadow-sm border product-main-image">
                 @if($product->image)
-                    <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" 
+                    <img src="{{ $product->image_url }}" alt="{{ $product->name }}" 
                          class="img-fluid w-100" style="max-height: 500px; object-fit: cover;">
                 @else
                     <div class="bg-secondary d-flex align-items-center justify-content-center" style="height: 500px;">
@@ -45,14 +62,8 @@
 
         <!-- Product Info -->
         <div class="col-lg-7">
-            <!-- Category Badge -->
-            <span class="badge bg-success mb-3">{{ $product->category->name }}</span>
-
-            <!-- Product Name -->
-            <h1 class="mb-3">{{ $product->name }}</h1>
-
             <!-- Rating & Reviews -->
-            <div class="d-flex align-items-center mb-4">
+            <div class="d-flex align-items-center mb-4 p-3 rounded-4 border bg-white shadow-sm">
                 <div class="d-flex align-items-center me-4">
                     @php
                         $avgRating = $product->average_rating;
@@ -67,7 +78,7 @@
             </div>
 
             <!-- Price Section -->
-            <div class="bg-light p-4 rounded-3 mb-4">
+            <div class="bg-light p-4 rounded-4 mb-4 border">
                 <div class="row align-items-center">
                     <div class="col-md-6">
                         <p class="text-muted small mb-1">Giá bán</p>
@@ -87,7 +98,7 @@
             </div>
 
             <!-- Description -->
-            <div class="mb-4">
+            <div class="mb-4 p-3 rounded-4 border bg-white shadow-sm">
                 <h5 class="mb-3">Mô tả sản phẩm</h5>
                 <p class="text-muted">{{ $product->description }}</p>
             </div>
@@ -116,7 +127,7 @@
             @endif
 
             <!-- Add to Cart & Actions -->
-            <div class="d-flex gap-3 mb-4">
+            <div class="d-flex gap-3 mb-4 p-3 rounded-4 border bg-white shadow-sm">
                 <div style="width: 150px;">
                     <label for="quantity" class="form-label small">Số lượng</label>
                     <div class="input-group">
@@ -139,7 +150,7 @@
             </div>
 
             <!-- Wishlist & Share -->
-            <div class="d-flex gap-2">
+            <div class="d-flex gap-2 mb-4">
                 <button class="btn btn-outline-secondary flex-grow-1" id="addToWishlistBtn">
                     <i class="far fa-heart me-2"></i>Thêm vào yêu thích
                 </button>
@@ -316,7 +327,7 @@
                                 <!-- Product Image -->
                                 <div class="position-relative overflow-hidden" style="height: 250px;">
                                     @if($related->image)
-                                        <img src="{{ asset('storage/' . $related->image) }}" alt="{{ $related->name }}" 
+                                        <img src="{{ $related->image_url }}" alt="{{ $related->name }}" 
                                              class="card-img-top h-100" style="object-fit: cover;">
                                     @else
                                         <div class="bg-secondary d-flex align-items-center justify-content-center h-100">
@@ -512,6 +523,27 @@
 </script>
 
 <style>
+    .product-hero {
+        background: linear-gradient(135deg, rgba(25, 135, 84, 0.1), rgba(13, 110, 253, 0.08));
+        border: 1px solid rgba(15, 23, 42, 0.08);
+    }
+    .product-hero .chip {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.45rem 0.75rem;
+        border-radius: 999px;
+        background: #fff;
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        font-size: 0.8rem;
+        color: #334155;
+    }
+    .product-main-image {
+        transition: transform 0.35s ease, box-shadow 0.35s ease;
+    }
+    .product-main-image:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 22px 44px rgba(15, 23, 42, 0.12) !important;
+    }
     .rating-input {
         display: flex;
         gap: 8px;

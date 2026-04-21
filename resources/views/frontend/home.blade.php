@@ -275,7 +275,7 @@
                         <div class="product-card position-relative">
                             <div class="card h-100 border-0 shadow-sm overflow-hidden">
                                 @if($product->image)
-                                    <img src="{{ asset('storage/' . $product->image) }}" class="card-img-top"
+                                    <img src="{{ $product->image_url }}" class="card-img-top"
                                         style="height: 260px; object-fit: cover;" alt="{{ $product->name }}">
                                 @else
                                     <img src="https://via.placeholder.com/300x260" class="card-img-top" alt="{{ $product->name }}">
@@ -324,7 +324,7 @@
                 <div class="product-card">
                     <div class="card h-100 border-0 shadow-sm overflow-hidden">
                         @if($product->image)
-                            <img src="{{ asset('storage/' . $product->image) }}" 
+                            <img src="{{ $product->image_url }}" 
                                  class="card-img-top" style="height: 260px; object-fit: cover;" alt="{{ $product->name }}">
                         @else
                             <img src="https://via.placeholder.com/300x260" class="card-img-top" alt="{{ $product->name }}">
@@ -383,7 +383,7 @@
             <div class="product-card">
                 <div class="card h-100 border-0 shadow-sm overflow-hidden">
                     @if($product->image)
-                        <img src="{{ asset('storage/' . $product->image) }}" 
+                        <img src="{{ $product->image_url }}" 
                              class="card-img-top" style="height: 260px; object-fit: cover;" alt="{{ $product->name }}">
                     @else
                         <img src="https://via.placeholder.com/300x260" class="card-img-top" alt="{{ $product->name }}">

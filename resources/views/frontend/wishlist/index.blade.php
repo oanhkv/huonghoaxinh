@@ -29,7 +29,7 @@
                     <!-- Product Image Container -->
                     <div class="position-relative overflow-hidden" style="height: 250px;">
                         @if($product->image)
-                            <img src="{{ asset('storage/' . $product->image) }}" 
+                            <img src="{{ $product->image_url }}" 
                                  class="card-img-top h-100" style="object-fit: cover;" alt="{{ $product->name }}">
                         @else
                             <div class="bg-secondary d-flex align-items-center justify-content-center h-100">

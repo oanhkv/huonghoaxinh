@@ -91,8 +91,12 @@
                         <div class="col-lg-4">
                             <label class="form-label">Hình ảnh sản phẩm</label>
                             <input type="file" name="image" class="form-control @error('image') is-invalid @enderror" accept="image/*">
+                            <label class="form-label mt-3">Hoặc nhập tên ảnh trong `public/img`</label>
+                            <input type="text" name="image_name" class="form-control @error('image_name') is-invalid @enderror" value="{{ old('image_name') }}" placeholder="Ví dụ: hoa-hong-do.jpg hoặc img/hoa-hong-do.jpg">
                             <div class="form-text mt-2">Tối ưu nhất là ảnh vuông, sáng và rõ sản phẩm.</div>
+                            <div class="form-text">Nếu nhập tên ảnh, hệ thống sẽ tự lấy từ thư mục `public/img`.</div>
                             @error('image') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                            @error('image_name') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
 
                             <div class="form-check mt-4 p-3 rounded-4" style="background: #f7fbff; border: 1px solid #dbe7f6;">
                                 <input type="checkbox" name="is_featured" class="form-check-input" id="featured" {{ old('is_featured') ? 'checked' : '' }}>

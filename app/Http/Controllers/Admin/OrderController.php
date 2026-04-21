@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Services\OrderInventoryService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
@@ -43,10 +45,20 @@ class OrderController extends Controller
     public function updateStatus(Request $request, Order $order)
     {
         $request->validate([
-            'status' => 'required|in:pending,confirmed,shipping,completed,cancelled',
+            'status' => 'required|in:pending,confirmed,shipping,completed,cancelled,cod,paid,delivered',
         ]);
 
-        $order->update(['status' => $request->status]);
+        $newStatus = $request->status;
+        if ($order->status === 'cancelled' && $newStatus !== 'cancelled') {
+            return redirect()->back()->with('error', 'Đơn đã hủy không thể chuyển lại trạng thái khác vì sẽ lệch tồn kho.');
+        }
+
+        DB::transaction(function () use ($order, $newStatus) {
+            if ($newStatus === 'cancelled' && $order->status !== 'cancelled') {
+                app(OrderInventoryService::class)->restoreForOrder($order);
+            }
+            $order->update(['status' => $newStatus]);
+        });
 
         return redirect()->back()
             ->with('success', 'Cập nhật trạng thái đơn hàng thành công!');

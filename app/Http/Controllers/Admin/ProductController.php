@@ -28,6 +28,14 @@ class ProductController extends Controller
             $query->where('category_id', $request->category_id);
         }
 
+        if ($request->filled('stock_status')) {
+            if ($request->stock_status === 'in_stock') {
+                $query->where('stock', '>', 0);
+            } elseif ($request->stock_status === 'out_of_stock') {
+                $query->where('stock', '<=', 0);
+            }
+        }
+
         $products = $query->latest()->paginate(10);
 
         $categories = Category::all();
@@ -50,6 +58,7 @@ class ProductController extends Controller
             'stock' => 'required|integer',
             'category_id' => 'required|exists:categories,id',
             'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'image_name' => 'nullable|string|max:255',
             'sizes' => 'nullable|json',
         ]);
 
@@ -73,6 +82,8 @@ class ProductController extends Controller
             $filename = time().'.'.$image->getClientOriginalExtension();
             $image->storeAs('public/products', $filename);
             $product->image = 'products/'.$filename;
+        } elseif ($request->filled('image_name')) {
+            $product->image = $this->normalizeImageName((string) $request->image_name);
         }
 
         $product->save();
@@ -96,6 +107,7 @@ class ProductController extends Controller
             'stock' => 'required|integer',
             'category_id' => 'required|exists:categories,id',
             'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'image_name' => 'nullable|string|max:255',
             'sizes' => 'nullable|json',
         ]);
 
@@ -114,13 +126,15 @@ class ProductController extends Controller
 
         if ($request->hasFile('image')) {
             // Xóa ảnh cũ
-            if ($product->image) {
+            if ($product->image && str_starts_with(str_replace('\\', '/', $product->image), 'products/')) {
                 Storage::delete('public/'.$product->image);
             }
             $image = $request->file('image');
             $filename = time().'.'.$image->getClientOriginalExtension();
             $image->storeAs('public/products', $filename);
             $product->image = 'products/'.$filename;
+        } elseif ($request->filled('image_name')) {
+            $product->image = $this->normalizeImageName((string) $request->image_name);
         }
 
         $product->save();
@@ -131,7 +145,7 @@ class ProductController extends Controller
 
     public function destroy(Product $product)
     {
-        if ($product->image) {
+        if ($product->image && str_starts_with(str_replace('\\', '/', $product->image), 'products/')) {
             Storage::delete('public/'.$product->image);
         }
         $product->delete();
@@ -164,5 +178,23 @@ class ProductController extends Controller
         return redirect()
             ->route('admin.products.index')
             ->with('success', 'Import thanh cong '.$import->getImportedCount().' san pham.');
+    }
+
+    private function normalizeImageName(string $imageName): string
+    {
+        $imageName = trim(str_replace('\\', '/', $imageName));
+        if ($imageName === '') {
+            return $imageName;
+        }
+
+        if (str_starts_with(strtolower($imageName), 'http://') || str_starts_with(strtolower($imageName), 'https://')) {
+            return $imageName;
+        }
+
+        if (str_starts_with($imageName, '/')) {
+            return ltrim($imageName, '/');
+        }
+
+        return $imageName;
     }
 }

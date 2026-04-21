@@ -7,11 +7,13 @@ use App\Models\Cart;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Voucher;
+use App\Services\OrderInventoryService;
 use App\Services\PaymentQrService;
 use App\Services\ShippingDistanceService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -34,6 +36,11 @@ class PaymentController extends Controller
 
         if ($cartItems->isEmpty()) {
             return redirect()->route('cart.index')->with('error', 'Giỏ hàng của bạn đang trống. Vui lòng thêm sản phẩm trước khi thanh toán.');
+        }
+
+        $stockIssue = app(OrderInventoryService::class)->findStockIssue($cartItems);
+        if ($stockIssue) {
+            return redirect()->route('cart.index')->with('error', $stockIssue);
         }
 
         $paymentMethod = old('payment_method', $pendingOrder && $pendingOrder->status === 'pending' ? 'card' : 'cod');
@@ -108,6 +115,11 @@ class PaymentController extends Controller
             return redirect()->route('cart.index')->with('error', 'Giỏ hàng của bạn đang trống.');
         }
 
+        $stockIssue = app(OrderInventoryService::class)->findStockIssue($cartItems);
+        if ($stockIssue) {
+            return redirect()->route('cart.index')->with('error', $stockIssue);
+        }
+
         $voucherCode = trim((string) $request->voucher_code);
         $distResult = app(ShippingDistanceService::class)->distanceFromShopKm($request->shipping_address);
         $distanceKm = $distResult['distance_km'];
@@ -129,32 +141,40 @@ class PaymentController extends Controller
             return redirect()->route('checkout.card', $pendingOrder)->with('success', 'Vui lòng hoàn tất thanh toán thẻ để xác nhận đơn hàng.');
         }
 
-        $order = new Order([
-            'user_id' => Auth::id(),
-            'order_code' => 'HD'.strtoupper(Str::random(6)),
-            'total_amount' => $total,
-            'status' => $request->payment_method === 'card' ? 'pending' : 'cod',
-            'shipping_address' => $request->shipping_address,
-            'phone' => $request->phone,
-            'note' => $this->buildOrderNote($request->note, $voucher?->code, $distanceKm, $shipping, $discount, $geocodedAddress),
-        ]);
-        $order->created_at = now();
-        $order->save();
+        $inventory = app(OrderInventoryService::class);
+        $order = DB::transaction(function () use ($request, $total, $voucher, $distanceKm, $shipping, $discount, $geocodedAddress, $cartItems, $inventory) {
+            $inventory->reserveForCartItems($cartItems);
 
-        foreach ($cartItems as $item) {
-            OrderItem::create([
-                'order_id' => $order->id,
-                'product_id' => $item->product_id,
-                'quantity' => $item->quantity,
-                'price' => $item->price,
+            $order = new Order([
+                'user_id' => Auth::id(),
+                'order_code' => 'HD'.strtoupper(Str::random(6)),
+                'total_amount' => $total,
+                'status' => $request->payment_method === 'card' ? 'pending' : 'cod',
+                'stock_deducted' => true,
+                'shipping_address' => $request->shipping_address,
+                'phone' => $request->phone,
+                'note' => $this->buildOrderNote($request->note, $voucher?->code, $distanceKm, $shipping, $discount, $geocodedAddress),
             ]);
-        }
+            $order->created_at = now();
+            $order->save();
 
-        if ($voucher) {
-            $voucher->increment('used_count');
-        }
+            foreach ($cartItems as $item) {
+                OrderItem::create([
+                    'order_id' => $order->id,
+                    'product_id' => $item->product_id,
+                    'quantity' => $item->quantity,
+                    'price' => $item->price,
+                ]);
+            }
 
-        Cart::where('user_id', Auth::id())->delete();
+            if ($voucher) {
+                $voucher->increment('used_count');
+            }
+
+            Cart::where('user_id', Auth::id())->delete();
+
+            return $order;
+        });
 
         if ($request->payment_method === 'card') {
             Session::put('card_order_id', $order->id);
@@ -261,7 +281,10 @@ class PaymentController extends Controller
             return back()->with('error', 'Thời hạn hủy đơn đã quá 30 phút. Không thể hủy đơn này nữa.');
         }
 
-        $order->update(['status' => 'cancelled']);
+        DB::transaction(function () use ($order) {
+            app(OrderInventoryService::class)->restoreForOrder($order);
+            $order->update(['status' => 'cancelled']);
+        });
 
         return back()->with('success', 'Đơn hàng đã được hủy thành công.');
     }
@@ -283,9 +306,17 @@ class PaymentController extends Controller
 
     private function expirePendingOrders()
     {
-        Order::where('status', 'pending')
+        $expiredOrders = Order::where('status', 'pending')
             ->where('created_at', '<', Carbon::now()->subMinutes(10))
-            ->update(['status' => 'cancelled']);
+            ->with('orderItems')
+            ->get();
+
+        foreach ($expiredOrders as $order) {
+            DB::transaction(function () use ($order) {
+                app(OrderInventoryService::class)->restoreForOrder($order);
+                $order->update(['status' => 'cancelled']);
+            });
+        }
     }
 
     private function calculatePricing($cartItems, ?string $voucherCode, float $distanceKm): array

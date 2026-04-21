@@ -54,6 +54,13 @@ class ShippingDistanceService
      */
     public function distanceFromShopKm(string $customerAddress): array
     {
+        if ($this->isSameAsShopAddress($customerAddress)) {
+            return [
+                'distance_km' => 0.0,
+                'geocoded' => true,
+            ];
+        }
+
         $shop = $this->shopCoordinates();
         $dest = $this->geocodeAddress($customerAddress);
 
@@ -64,8 +71,10 @@ class ShippingDistanceService
             ];
         }
 
+        $distance = $this->haversineKm($shop['lat'], $shop['lng'], $dest['lat'], $dest['lng']);
+
         return [
-            'distance_km' => round($this->haversineKm($shop['lat'], $shop['lng'], $dest['lat'], $dest['lng']), 2),
+            'distance_km' => round($distance < 0.1 ? 0.0 : $distance, 2),
             'geocoded' => true,
         ];
     }
@@ -112,5 +121,40 @@ class ShippingDistanceService
         } catch (\Throwable $e) {
             return null;
         }
+    }
+
+    private function isSameAsShopAddress(string $address): bool
+    {
+        $input = $this->normalizeAddress($address);
+        if ($input === '') {
+            return false;
+        }
+
+        $refs = [
+            (string) config('shop.address_line', ''),
+            (string) config('shop.geocode_query', ''),
+        ];
+
+        foreach ($refs as $ref) {
+            $normalizedRef = $this->normalizeAddress($ref);
+            if ($normalizedRef === '') {
+                continue;
+            }
+
+            if ($input === $normalizedRef || str_contains($input, $normalizedRef) || str_contains($normalizedRef, $input)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function normalizeAddress(string $address): string
+    {
+        $normalized = Str::lower(Str::ascii($address));
+        $normalized = preg_replace('/\b(viet nam|vietnam)\b/', ' ', $normalized) ?? $normalized;
+        $normalized = preg_replace('/[^a-z0-9]+/', ' ', $normalized) ?? $normalized;
+
+        return trim((string) preg_replace('/\s+/', ' ', $normalized));
     }
 }

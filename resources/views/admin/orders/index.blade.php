@@ -25,6 +25,9 @@
                             <option value="confirmed" {{ request('status') == 'confirmed' ? 'selected' : '' }}>Đã xác nhận</option>
                             <option value="shipping" {{ request('status') == 'shipping' ? 'selected' : '' }}>Đang giao</option>
                             <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Hoàn thành</option>
+                            <option value="delivered" {{ request('status') == 'delivered' ? 'selected' : '' }}>Đã giao thành công</option>
+                            <option value="paid" {{ request('status') == 'paid' ? 'selected' : '' }}>Đã thanh toán</option>
+                            <option value="cod" {{ request('status') == 'cod' ? 'selected' : '' }}>Chờ thu COD</option>
                             <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Đã hủy</option>
                         </select>
                     </div>
@@ -57,7 +60,7 @@
                         <td>{{ $order->created_at->format('d/m/Y H:i') }}</td>
                         <td class="fw-bold text-danger">{{ number_format($order->total_amount) }}đ</td>
                         <td>
-                            <span class="badge bg-{{ $order->status == 'completed' ? 'success' : ($order->status == 'shipping' ? 'primary' : 'warning') }}">
+                            <span class="badge bg-{{ in_array($order->status, ['completed','delivered']) ? 'success' : (in_array($order->status, ['shipping']) ? 'primary' : (in_array($order->status, ['cancelled']) ? 'danger' : (in_array($order->status, ['paid','confirmed']) ? 'info' : 'warning'))) }}">
                                 {{ ucfirst($order->status) }}
                             </span>
                         </td>

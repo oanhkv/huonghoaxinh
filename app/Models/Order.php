@@ -14,9 +14,14 @@ class Order extends Model
         'order_code',
         'total_amount',
         'status',
+        'stock_deducted',
         'shipping_address',
         'phone',
         'note',
+    ];
+
+    protected $casts = [
+        'stock_deducted' => 'boolean',
     ];
 
     public function user()

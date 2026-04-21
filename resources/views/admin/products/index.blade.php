@@ -41,12 +41,12 @@
         <div class="card-body">
             <form method="GET" action="{{ route('admin.products.index') }}">
                 <div class="row g-3">
-                    <div class="col-md-5">
+                    <div class="col-md-4">
                         <input type="text" name="search" class="form-control" 
                                placeholder="Tìm theo tên sản phẩm..." 
                                value="{{ request('search') }}">
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <select name="category_id" class="form-select">
                             <option value="">-- Tất cả danh mục --</option>
                             @foreach($categories as $cat)
@@ -57,6 +57,13 @@
                         </select>
                     </div>
                     <div class="col-md-3">
+                        <select name="stock_status" class="form-select">
+                            <option value="">-- Trạng thái kho --</option>
+                            <option value="in_stock" {{ request('stock_status') == 'in_stock' ? 'selected' : '' }}>Còn hàng</option>
+                            <option value="out_of_stock" {{ request('stock_status') == 'out_of_stock' ? 'selected' : '' }}>Hết hàng</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
                         <button type="submit" class="btn btn-primary w-100">Tìm kiếm</button>
                     </div>
                 </div>
@@ -84,7 +91,7 @@
                     <tr>
                         <td>
                             @if($product->image)
-                                <img src="{{ asset('storage/' . $product->image) }}" 
+                                <img src="{{ $product->image_url }}" 
                                      alt="{{ $product->name }}" class="img-thumbnail" style="width: 60px; height: 60px; object-fit: cover;">
                             @else
                                 <img src="{{ asset('images/product-placeholder.svg') }}" alt="Placeholder" class="img-thumbnail" style="width: 60px; height: 60px; object-fit: cover;">

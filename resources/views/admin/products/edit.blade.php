@@ -91,7 +91,7 @@
                                 <label class="form-label">Hình ảnh hiện tại</label>
                                 <div class="mt-2 text-center">
                                     @if($product->image)
-                                        <img src="{{ asset('storage/' . $product->image) }}" class="img-fluid rounded-4 border" style="max-height: 210px; object-fit: cover;">
+                                        <img src="{{ $product->image_url }}" class="img-fluid rounded-4 border" style="max-height: 210px; object-fit: cover;">
                                     @else
                                         <div class="py-5 text-muted rounded-4 border bg-white">Chưa có ảnh</div>
                                     @endif
@@ -100,8 +100,11 @@
 
                             <label class="form-label">Chọn ảnh mới</label>
                             <input type="file" name="image" class="form-control @error('image') is-invalid @enderror" accept="image/*">
+                            <label class="form-label mt-3">Hoặc nhập tên ảnh trong `public/img`</label>
+                            <input type="text" name="image_name" class="form-control @error('image_name') is-invalid @enderror" value="{{ old('image_name', $product->image) }}" placeholder="Ví dụ: hoa-hong-do.jpg hoặc img/hoa-hong-do.jpg">
                             <div class="form-text mt-2">Chỉ chọn ảnh mới nếu muốn thay đổi hình đại diện sản phẩm.</div>
                             @error('image') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
+                            @error('image_name') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
 
                             <div class="form-check mt-4 p-3 rounded-4" style="background: #f7fbff; border: 1px solid #dbe7f6;">
                                 <input type="checkbox" name="is_featured" class="form-check-input" id="featured" {{ old('is_featured', $product->is_featured) ? 'checked' : '' }}>

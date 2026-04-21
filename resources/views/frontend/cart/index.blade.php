@@ -16,6 +16,16 @@
         <i class="fas fa-shopping-cart me-2 text-success"></i>Giỏ hàng của bạn
     </h2>
 
+    @if(!empty($hasStockIssue) && $hasStockIssue && !empty($stockIssue))
+        <div class="alert alert-warning d-flex align-items-start gap-2">
+            <i class="fas fa-triangle-exclamation mt-1"></i>
+            <div>
+                <strong>Giỏ hàng cần cập nhật:</strong> {{ $stockIssue }}
+                <div class="small mt-1">Vui lòng giảm số lượng hoặc xóa sản phẩm để tiếp tục thanh toán.</div>
+            </div>
+        </div>
+    @endif
+
     @if($cartItems->isEmpty())
         <!-- Giỏ hàng trống -->
         <div class="row">
@@ -58,7 +68,7 @@
                                     <!-- Hình ảnh sản phẩm -->
                                     <div class="col-md-3">
                                         @if($firstItem->product->image)
-                                            <img src="{{ asset('storage/' . $firstItem->product->image) }}" 
+                                            <img src="{{ $firstItem->product->image_url }}" 
                                                  alt="{{ $firstItem->product->name }}"
                                                  class="img-fluid rounded" style="height: 100px; object-fit: cover;">
                                         @else
@@ -186,9 +196,15 @@
                             </span>
                         </div>
 
-                        <a href="{{ route('checkout.index') }}" class="btn btn-success btn-lg w-100 mb-2">
-                            <i class="fas fa-lock me-2"></i>Tiến hành thanh toán
-                        </a>
+                        @if(!empty($hasStockIssue) && $hasStockIssue)
+                            <button class="btn btn-secondary btn-lg w-100 mb-2" type="button" disabled>
+                                <i class="fas fa-ban me-2"></i>Không thể thanh toán khi giỏ đang vượt kho
+                            </button>
+                        @else
+                            <a href="{{ route('checkout.index') }}" class="btn btn-success btn-lg w-100 mb-2">
+                                <i class="fas fa-lock me-2"></i>Tiến hành thanh toán
+                            </a>
+                        @endif
 
                         @guest
                             <div class="small text-muted mb-2">

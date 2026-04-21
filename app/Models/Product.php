@@ -50,4 +50,35 @@ class Product extends Model
     {
         return $this->visibleReviews()->count();
     }
+
+    public function getImageUrlAttribute(): ?string
+    {
+        $image = trim((string) $this->image);
+        if ($image === '') {
+            return null;
+        }
+
+        $image = str_replace('\\', '/', $image);
+        $lower = strtolower($image);
+
+        if (str_starts_with($lower, 'http://') || str_starts_with($lower, 'https://')) {
+            return $image;
+        }
+
+        if (str_starts_with($image, '/')) {
+            return asset(ltrim($image, '/'));
+        }
+
+        if (str_starts_with($lower, 'storage/') || str_starts_with($lower, 'img/')) {
+            return asset($image);
+        }
+
+        // Nếu chỉ nhập tên ảnh (vd: rose.jpg) thì ưu tiên lấy từ public/img.
+        if (! str_contains($image, '/')) {
+            return asset('img/'.$image);
+        }
+
+        // Mặc định ảnh upload bởi admin lưu ở storage/app/public.
+        return asset('storage/'.$image);
+    }
 }
