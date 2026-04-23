@@ -5,13 +5,17 @@
 @section('content')
 <div class="container py-5" id="checkoutPage"
      data-subtotal="{{ $subtotal }}"
+     data-shipping="{{ $shipping }}"
      data-discount="{{ $discount }}"
      data-estimate-url="{{ route('shipping.estimate') }}"
+     data-voucher-url="{{ route('checkout.apply-voucher') }}"
      data-csrf="{{ csrf_token() }}">
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{{ route('home') }}" class="text-decoration-none">Trang chủ</a></li>
-            <li class="breadcrumb-item"><a href="{{ route('cart.index') }}" class="text-decoration-none">Giỏ hàng</a></li>
+            @if(empty($isBuyNow))
+                <li class="breadcrumb-item"><a href="{{ route('cart.index') }}" class="text-decoration-none">Giỏ hàng</a></li>
+            @endif
             <li class="breadcrumb-item active" aria-current="page">Thanh toán</li>
         </ol>
     </nav>
@@ -27,6 +31,9 @@
                 <div class="card-body">
                     <form method="POST" action="{{ route('checkout.process') }}">
                         @csrf
+                        @if(!empty($isBuyNow))
+                            <input type="hidden" name="checkout_source" value="buy_now">
+                        @endif
 
                         @if(isset($pendingOrder) && $pendingOrder->status === 'pending')
                             <div class="alert alert-info">
@@ -62,7 +69,11 @@
 
                         <div class="mb-3">
                             <label for="voucherCode" class="form-label">Mã giảm giá</label>
-                            <input type="text" name="voucher_code" id="voucherCode" value="{{ $voucherCode ?? '' }}" class="form-control @error('voucher_code') is-invalid @enderror" placeholder="Nhập mã giảm giá nếu có">
+                            <div class="input-group">
+                                <input type="text" name="voucher_code" id="voucherCode" value="{{ $voucherCode ?? '' }}" class="form-control @error('voucher_code') is-invalid @enderror" placeholder="Nhập mã giảm giá nếu có">
+                                <button class="btn btn-outline-success" type="button" id="applyVoucherBtn">Áp dụng</button>
+                            </div>
+                            <div id="voucherFeedback" class="small mt-2"></div>
                             @error('voucher_code')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -152,14 +163,21 @@
     const root = document.getElementById('checkoutPage');
     const addr = document.getElementById('shippingAddress');
     const shippingPreview = document.getElementById('shippingPreview');
+    const discountPreview = document.getElementById('discountPreview');
     const totalPreview = document.getElementById('totalPreview');
     const distanceInfo = document.getElementById('distanceInfo');
     const distanceKmLabel = document.getElementById('distanceKmLabel');
-    if (!root || !addr || !shippingPreview || !totalPreview) return;
+    const voucherInput = document.getElementById('voucherCode');
+    const applyVoucherBtn = document.getElementById('applyVoucherBtn');
+    const voucherFeedback = document.getElementById('voucherFeedback');
+    const checkoutSource = document.querySelector('input[name="checkout_source"]')?.value || '';
+    if (!root || !addr || !shippingPreview || !discountPreview || !totalPreview) return;
 
     const subtotal = parseFloat(root.dataset.subtotal || '0');
-    const discount = parseFloat(root.dataset.discount || '0');
+    let currentDiscount = parseFloat(root.dataset.discount || '0');
+    let currentShipping = parseFloat(root.dataset.shipping || '0');
     const estimateUrl = root.dataset.estimateUrl;
+    const voucherUrl = root.dataset.voucherUrl;
     const csrf = root.dataset.csrf;
     let debounceTimer = null;
 
@@ -167,10 +185,24 @@
         return new Intl.NumberFormat('vi-VN').format(n) + ' ₫';
     }
 
-    function applyShippingToTotal(shipping) {
-        shippingPreview.textContent = shipping === 0 ? 'Miễn phí' : formatMoney(shipping);
-        const total = Math.max(0, subtotal + shipping - discount);
+    function renderSummary() {
+        shippingPreview.textContent = currentShipping === 0 ? 'Miễn phí' : formatMoney(currentShipping);
+        discountPreview.textContent = '-' + formatMoney(currentDiscount);
+        const total = Math.max(0, subtotal + currentShipping - currentDiscount);
         totalPreview.textContent = formatMoney(total);
+    }
+
+    function setVoucherFeedback(message, type) {
+        if (!voucherFeedback) return;
+        voucherFeedback.textContent = message || '';
+        voucherFeedback.className = 'small mt-2';
+        if (type === 'success') {
+            voucherFeedback.classList.add('text-success');
+        } else if (type === 'error') {
+            voucherFeedback.classList.add('text-danger');
+        } else {
+            voucherFeedback.classList.add('text-muted');
+        }
     }
 
     function estimate() {
@@ -194,9 +226,56 @@
                 distanceInfo.classList.remove('d-none');
                 distanceKmLabel.textContent = new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 1 }).format(data.distance_km);
             }
-            applyShippingToTotal(parseInt(data.shipping, 10) || 0);
+            currentShipping = parseInt(data.shipping, 10) || 0;
+            renderSummary();
         })
         .catch(function () { /* giữ giá trị server render */ });
+    }
+
+    function applyVoucher() {
+        if (!voucherInput || !voucherUrl) return;
+        const voucherCode = (voucherInput.value || '').trim();
+        const shippingAddress = (addr.value || '').trim();
+
+        applyVoucherBtn?.setAttribute('disabled', 'disabled');
+        setVoucherFeedback('Đang kiểm tra mã giảm giá...', 'muted');
+
+        fetch(voucherUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrf
+            },
+            body: JSON.stringify({
+                voucher_code: voucherCode,
+                shipping_address: shippingAddress,
+                checkout_source: checkoutSource
+            })
+        })
+        .then(function (r) {
+            return r.json().then(function (data) {
+                return { ok: r.ok, data: data };
+            });
+        })
+        .then(function (res) {
+            if (!res.ok || !res.data.success) {
+                throw new Error(res.data.message || 'Mã giảm giá không hợp lệ.');
+            }
+
+            currentShipping = parseFloat(res.data.shipping || 0);
+            currentDiscount = parseFloat(res.data.discount || 0);
+            renderSummary();
+            setVoucherFeedback(res.data.message || 'Áp dụng mã thành công.', 'success');
+        })
+        .catch(function (err) {
+            currentDiscount = 0;
+            renderSummary();
+            setVoucherFeedback(err.message || 'Không áp dụng được mã giảm giá.', 'error');
+        })
+        .finally(function () {
+            applyVoucherBtn?.removeAttribute('disabled');
+        });
     }
 
     addr.addEventListener('input', function () {
@@ -204,9 +283,18 @@
         debounceTimer = setTimeout(estimate, 550);
     });
 
+    applyVoucherBtn?.addEventListener('click', applyVoucher);
+    voucherInput?.addEventListener('keydown', function (ev) {
+        if (ev.key === 'Enter') {
+            ev.preventDefault();
+            applyVoucher();
+        }
+    });
+
     if ((addr.value || '').trim().length >= 8) {
         estimate();
     }
+    renderSummary();
 })();
 </script>
 @endsection

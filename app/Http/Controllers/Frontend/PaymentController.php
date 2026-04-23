@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Cart;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Product;
+use App\Models\Review;
 use App\Models\Voucher;
 use App\Services\OrderInventoryService;
 use App\Services\PaymentQrService;
@@ -20,14 +22,55 @@ use Illuminate\Validation\ValidationException;
 
 class PaymentController extends Controller
 {
+    private const BUY_NOW_SESSION_KEY = 'checkout_buy_now_item';
+
+    public function initBuyNow(Request $request)
+    {
+        $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'quantity' => 'required|integer|min:1',
+            'unit_price' => 'nullable|numeric|min:0',
+            'variant' => 'nullable|string|max:255',
+        ]);
+
+        $product = Product::findOrFail((int) $request->product_id);
+        if (! $product->is_active) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Sản phẩm hiện đã ngừng bán.',
+            ], 422);
+        }
+        if ((int) $product->stock < (int) $request->quantity) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Số lượng vượt quá tồn kho hiện tại.',
+            ], 422);
+        }
+
+        Session::put(self::BUY_NOW_SESSION_KEY, [
+            'product_id' => (int) $product->id,
+            'quantity' => (int) $request->quantity,
+            'price' => (float) ($request->unit_price ?? $product->price),
+            'variant' => trim((string) $request->variant),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'redirect_url' => route('checkout.index', ['mode' => 'buy_now']),
+        ]);
+    }
+
     public function checkout()
     {
         $this->expirePendingOrders();
 
-        $cartItems = Cart::where('user_id', Auth::id())->with('product')->get();
+        $isBuyNow = request('mode') === 'buy_now';
+        $cartItems = $isBuyNow
+            ? $this->getBuyNowItemsFromSession()
+            : Cart::where('user_id', Auth::id())->with('product')->get();
         $pendingOrder = null;
 
-        if ($cartItems->isEmpty() && Session::has('card_order_id')) {
+        if (! $isBuyNow && $cartItems->isEmpty() && Session::has('card_order_id')) {
             $pendingOrder = Order::with('orderItems.product')->find(Session::get('card_order_id'));
             if ($pendingOrder) {
                 $cartItems = $pendingOrder->orderItems;
@@ -74,6 +117,7 @@ class PaymentController extends Controller
 
         return view('frontend.checkout.index', compact(
             'cartItems',
+            'isBuyNow',
             'subtotal',
             'shipping',
             'discount',
@@ -89,6 +133,53 @@ class PaymentController extends Controller
         ));
     }
 
+    public function applyVoucherPreview(Request $request)
+    {
+        $request->validate([
+            'voucher_code' => 'nullable|string|max:50',
+            'shipping_address' => 'nullable|string|max:255',
+            'checkout_source' => 'nullable|string|max:20',
+        ]);
+
+        $isBuyNow = $request->input('checkout_source') === 'buy_now';
+        $cartItems = $isBuyNow
+            ? $this->getBuyNowItemsFromSession()
+            : Cart::where('user_id', Auth::id())->with('product')->get();
+
+        if ($cartItems->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Không tìm thấy sản phẩm để áp dụng mã giảm giá.',
+            ], 422);
+        }
+
+        $distanceKm = 0.0;
+        $shippingAddress = trim((string) $request->input('shipping_address', ''));
+        if ($shippingAddress !== '') {
+            $dist = app(ShippingDistanceService::class)->distanceFromShopKm($shippingAddress);
+            $distanceKm = (float) $dist['distance_km'];
+        }
+
+        $voucherCode = trim((string) $request->input('voucher_code', ''));
+        try {
+            $pricing = $this->calculatePricing($cartItems, $voucherCode !== '' ? $voucherCode : null, $distanceKm);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->validator->errors()->first('voucher_code') ?: 'Mã giảm giá không hợp lệ.',
+            ], 422);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => $voucherCode !== '' ? 'Áp dụng mã giảm giá thành công.' : 'Đã bỏ mã giảm giá.',
+            'subtotal' => (float) $pricing['subtotal'],
+            'shipping' => (float) $pricing['shipping'],
+            'discount' => (float) $pricing['discount'],
+            'total' => (float) $pricing['total'],
+        ]);
+    }
+
     public function process(Request $request)
     {
         $this->expirePendingOrders();
@@ -101,13 +192,17 @@ class PaymentController extends Controller
             'voucher_code' => 'nullable|string|max:50',
         ]);
 
+        $isBuyNow = $request->input('checkout_source') === 'buy_now';
         $pendingOrder = null;
-        if (Session::has('card_order_id')) {
+        if (! $isBuyNow && Session::has('card_order_id')) {
             $pendingOrder = Order::find(Session::get('card_order_id'));
         }
 
-        $cartItems = Cart::where('user_id', Auth::id())->with('product')->get();
-        if ($cartItems->isEmpty() && $pendingOrder && $pendingOrder->status === 'pending') {
+        $cartItems = $isBuyNow
+            ? $this->getBuyNowItemsFromSession()
+            : Cart::where('user_id', Auth::id())->with('product')->get();
+
+        if (! $isBuyNow && $cartItems->isEmpty() && $pendingOrder && $pendingOrder->status === 'pending') {
             $cartItems = $pendingOrder->orderItems;
         }
 
@@ -142,7 +237,7 @@ class PaymentController extends Controller
         }
 
         $inventory = app(OrderInventoryService::class);
-        $order = DB::transaction(function () use ($request, $total, $voucher, $distanceKm, $shipping, $discount, $geocodedAddress, $cartItems, $inventory) {
+        $order = DB::transaction(function () use ($request, $total, $voucher, $distanceKm, $shipping, $discount, $geocodedAddress, $cartItems, $inventory, $isBuyNow) {
             $inventory->reserveForCartItems($cartItems);
 
             $order = new Order([
@@ -171,7 +266,11 @@ class PaymentController extends Controller
                 $voucher->increment('used_count');
             }
 
-            Cart::where('user_id', Auth::id())->delete();
+            if (! $isBuyNow) {
+                Cart::where('user_id', Auth::id())->delete();
+            } else {
+                Session::forget(self::BUY_NOW_SESSION_KEY);
+            }
 
             return $order;
         });
@@ -183,6 +282,31 @@ class PaymentController extends Controller
         }
 
         return redirect()->route('checkout.success', ['order' => $order->id])->with('success', 'Đơn hàng của bạn đã được tạo thành công.');
+    }
+
+    private function getBuyNowItemsFromSession()
+    {
+        $item = Session::get(self::BUY_NOW_SESSION_KEY);
+        if (! is_array($item) || empty($item['product_id'])) {
+            return collect();
+        }
+
+        $product = Product::find((int) $item['product_id']);
+        if (! $product) {
+            return collect();
+        }
+
+        return collect([
+            (object) [
+                'id' => 'buy-now-'.$product->id,
+                'user_id' => Auth::id(),
+                'product_id' => (int) $product->id,
+                'quantity' => max(1, (int) ($item['quantity'] ?? 1)),
+                'price' => (float) ($item['price'] ?? $product->price),
+                'variant' => (string) ($item['variant'] ?? ''),
+                'product' => $product,
+            ],
+        ]);
     }
 
     public function cardPayment(Order $order)
@@ -263,8 +387,13 @@ class PaymentController extends Controller
         }
 
         $orders = $query->get();
+        $reviewedProductIds = Review::where('user_id', Auth::id())
+            ->pluck('product_id')
+            ->unique()
+            ->map(fn ($id) => (int) $id)
+            ->all();
 
-        return view('frontend.orders.history', compact('orders', 'filter'));
+        return view('frontend.orders.history', compact('orders', 'filter', 'reviewedProductIds'));
     }
 
     public function cancel(Order $order)
