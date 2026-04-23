@@ -86,6 +86,16 @@
                                 <span class="badge bg-{{ $statusClass }}">
                                     {{ $statusLabel }}
                                 </span>
+                                @if($order->status === 'pending')
+                                    @php
+                                        $expiresAtMs = $order->created_at->copy()->addMinutes(10)->valueOf();
+                                    @endphp
+                                    <div class="small mt-2 text-danger">
+                                        Thời gian thanh toán còn lại:
+                                        <strong class="pending-order-countdown" data-expires-at="{{ $expiresAtMs }}">10:00</strong>
+                                    </div>
+                                    <div class="small text-muted">Quá 10 phút chưa thanh toán, đơn hàng sẽ tự động hủy.</div>
+                                @endif
                             </div>
                             <div class="text-end">
                                 <div class="fw-bold text-success">{{ number_format($order->total_amount, 0, ',', '.') }} ₫</div>
@@ -129,6 +139,23 @@
                                                 <span>{{ $item->quantity }} x {{ number_format($item->price, 0, ',', '.') }} ₫</span>
                                                 <span>Giá mỗi: {{ number_format($item->price, 0, ',', '.') }} ₫</span>
                                             </div>
+                                            @if($order->status === 'delivered')
+                                                @php
+                                                    $isReviewed = in_array((int) $item->product_id, $reviewedProductIds ?? [], true);
+                                                @endphp
+                                                <div class="mt-2">
+                                                    @if($isReviewed)
+                                                        <span class="badge bg-success-subtle text-success border border-success-subtle">
+                                                            <i class="fas fa-check-circle me-1"></i>Đã đánh giá
+                                                        </span>
+                                                    @else
+                                                        <a href="{{ route('reviews.create', $item->product->slug) }}"
+                                                           class="btn btn-sm btn-outline-success">
+                                                            <i class="fas fa-star me-1"></i>Đánh giá sản phẩm
+                                                        </a>
+                                                    @endif
+                                                </div>
+                                            @endif
                                         </div>
                                     @endforeach
                                 </div>
@@ -156,4 +183,46 @@
         </div>
     @endif
 </div>
+
+<script>
+    (function () {
+        const countdownEls = document.querySelectorAll('.pending-order-countdown');
+        if (!countdownEls.length) return;
+
+        function formatRemaining(ms) {
+            const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+            const mins = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+            const secs = String(totalSeconds % 60).padStart(2, '0');
+            return `${mins}:${secs}`;
+        }
+
+        function tickAll() {
+            let hasExpired = false;
+
+            countdownEls.forEach(function (el) {
+                const expiresAt = parseInt(el.getAttribute('data-expires-at'), 10);
+                if (!expiresAt) return;
+
+                const remaining = expiresAt - Date.now();
+                if (remaining <= 0) {
+                    el.textContent = '00:00';
+                    hasExpired = true;
+                } else {
+                    el.textContent = formatRemaining(remaining);
+                }
+            });
+
+            if (hasExpired) {
+                setTimeout(function () {
+                    window.location.reload();
+                }, 700);
+                return;
+            }
+
+            setTimeout(tickAll, 1000);
+        }
+
+        tickAll();
+    })();
+</script>
 @endsection
