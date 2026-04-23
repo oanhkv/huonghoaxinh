@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminProfileController;
+use App\Http\Controllers\Admin\Auth\AdminAuthenticatedSessionController;
 use App\Http\Controllers\Admin\CategoryController;
 // ==================== FRONTEND ====================
 use App\Http\Controllers\Admin\DashboardController;
@@ -65,9 +66,12 @@ Route::middleware('auth')->prefix('wishlist')->name('wishlist.')->group(function
 
 Route::middleware('auth')->group(function () {
     Route::post('/shipping/estimate', [ShippingEstimateController::class, 'estimate'])->name('shipping.estimate');
+    Route::get('/reviews/create/{product:slug}', [ProductReviewController::class, 'create'])->name('reviews.create');
     Route::post('/reviews', [ProductReviewController::class, 'store'])->name('reviews.store');
 
     Route::get('/checkout', [PaymentController::class, 'checkout'])->name('checkout.index');
+    Route::post('/checkout/buy-now', [PaymentController::class, 'initBuyNow'])->name('checkout.buy-now');
+    Route::post('/checkout/apply-voucher', [PaymentController::class, 'applyVoucherPreview'])->name('checkout.apply-voucher');
     Route::post('/checkout', [PaymentController::class, 'process'])->name('checkout.process');
     Route::get('/checkout/success', [PaymentController::class, 'success'])->name('checkout.success');
     Route::get('/checkout/card/{order}', [PaymentController::class, 'cardPayment'])->name('checkout.card');
@@ -83,8 +87,17 @@ Route::middleware('auth')->group(function () {
 });
 
 // ==================== ADMIN ROUTES ====================
+Route::prefix('admin')->name('admin.')->group(function () {
+    Route::middleware('guest:admin')->group(function () {
+        Route::get('/login', [AdminAuthenticatedSessionController::class, 'create'])->name('login');
+        Route::post('/login', [AdminAuthenticatedSessionController::class, 'store'])->name('login.store');
+    });
+
+    Route::middleware('admin')->post('/logout', [AdminAuthenticatedSessionController::class, 'destroy'])->name('logout');
+});
+
 Route::prefix('admin')
-    ->middleware(['auth', 'admin'])
+    ->middleware(['admin'])
     ->name('admin.')
     ->group(function () {
 
