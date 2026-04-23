@@ -3,9 +3,9 @@
 @section('title', $product->name)
 
 @section('content')
-<div class="container py-5">
+<div class="container py-3 product-page-compact">
     <!-- Breadcrumb -->
-    <nav aria-label="breadcrumb" class="mb-4">
+    <nav aria-label="breadcrumb" class="mb-2 product-breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{{ route('home') }}" class="text-decoration-none">Trang chủ</a></li>
             <li class="breadcrumb-item"><a href="{{ route('shop') }}" class="text-decoration-none">Cửa hàng</a></li>
@@ -27,12 +27,12 @@
         </div>
     @endif
 
-    <div class="product-hero mb-4 p-4 p-lg-5 rounded-4">
-        <div class="row g-4 align-items-center">
+    <div class="product-hero mb-3 p-3 p-lg-4 rounded-4">
+        <div class="row g-3 align-items-center">
             <div class="col-lg-8">
-                <span class="badge rounded-pill text-bg-light mb-2">{{ $product->category->name }}</span>
-                <h1 class="fw-bold mb-2">{{ $product->name }}</h1>
-                <p class="mb-0 text-muted">{{ Str::limit($product->description, 180) }}</p>
+                <span class="badge rounded-pill text-bg-light mb-1">{{ $product->category->name }}</span>
+                <h1 class="fw-bold mb-1 product-hero-title">{{ $product->name }}</h1>
+                <p class="mb-0 text-muted small">{{ Str::limit($product->description, 115) }}</p>
             </div>
             <div class="col-lg-4">
                 <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
@@ -45,15 +45,15 @@
     </div>
 
     <!-- Product Detail -->
-    <div class="row mb-5 g-4">
+    <div class="row mb-4 g-3">
         <!-- Product Image -->
-        <div class="col-lg-5 mb-4 mb-lg-0">
+        <div class="col-lg-4 mb-3 mb-lg-0">
             <div class="bg-light rounded-4 overflow-hidden shadow-sm border product-main-image">
                 @if($product->image)
                     <img src="{{ $product->image_url }}" alt="{{ $product->name }}" 
-                         class="img-fluid w-100" style="max-height: 500px; object-fit: cover;">
+                         class="img-fluid w-100 product-detail-image">
                 @else
-                    <div class="bg-secondary d-flex align-items-center justify-content-center" style="height: 500px;">
+                    <div class="bg-secondary d-flex align-items-center justify-content-center product-detail-image-placeholder">
                         <i class="fas fa-image fa-4x text-muted"></i>
                     </div>
                 @endif
@@ -61,9 +61,9 @@
         </div>
 
         <!-- Product Info -->
-        <div class="col-lg-7">
+        <div class="col-lg-8">
             <!-- Rating & Reviews -->
-            <div class="d-flex align-items-center mb-4 p-3 rounded-4 border bg-white shadow-sm">
+            <div class="d-flex align-items-center mb-2 p-2 rounded-4 border bg-white shadow-sm compact-card">
                 <div class="d-flex align-items-center me-4">
                     @php
                         $avgRating = $product->average_rating;
@@ -78,7 +78,7 @@
             </div>
 
             <!-- Price Section -->
-            <div class="bg-light p-4 rounded-4 mb-4 border">
+            <div class="bg-light p-3 rounded-4 mb-2 border compact-card">
                 <div class="row align-items-center">
                     <div class="col-md-6">
                         <p class="text-muted small mb-1">Giá bán</p>
@@ -97,15 +97,32 @@
                 </div>
             </div>
 
-            <!-- Description -->
-            <div class="mb-4 p-3 rounded-4 border bg-white shadow-sm">
-                <h5 class="mb-3">Mô tả sản phẩm</h5>
-                <p class="text-muted">{{ $product->description }}</p>
+            <!-- Product Highlights -->
+            <div class="product-highlights mb-3">
+                <div class="highlights-grid">
+                    <div class="highlight-item">
+                        <div class="highlight-icon"><i class="far fa-clock"></i></div>
+                        <div class="highlight-text">GIAO HOA TẬN NƠI<br>2H</div>
+                    </div>
+                    <div class="highlight-item">
+                        <div class="highlight-icon"><i class="fas fa-camera"></i></div>
+                        <div class="highlight-text">GỬI ẢNH TRƯỚC<br>KHI GIAO</div>
+                    </div>
+                    <div class="highlight-item">
+                        <div class="highlight-icon"><i class="fas fa-gift"></i></div>
+                        <div class="highlight-text">TẶNG KÈM THIỆP /<br>BANNER</div>
+                    </div>
+                    <div class="highlight-item">
+                        <div class="highlight-icon"><i class="far fa-file-alt"></i></div>
+                        <div class="highlight-text">HOÁ ĐƠN CÔNG TY<br>(VAT +8%)</div>
+                    </div>
+                </div>
+
             </div>
 
             <!-- Size Selection -->
             @if($product->sizes && count($product->sizes) > 0)
-                <div class="mb-4">
+                <div class="mb-3">
                     <label class="form-label small fw-semibold mb-2">
                         <i class="fas fa-ruler-combined me-2 text-success"></i>Kích cỡ
                     </label>
@@ -176,7 +193,7 @@
             </div>
 
             <!-- Wishlist & Share -->
-            <div class="d-flex gap-2 mb-4">
+            <div class="d-flex gap-2 mb-2">
                 <button class="btn btn-outline-secondary flex-grow-1" id="addToWishlistBtn">
                     <i class="far fa-heart me-2"></i>Thêm vào yêu thích
                 </button>
@@ -191,7 +208,7 @@
             </div>
 
             <!-- Shipping Info -->
-            <div class="border-top pt-4 mt-4">
+            <div class="border-top pt-2 mt-2 compact-shipping">
                 <div class="row">
                     <div class="col-sm-6 mb-3">
                         <p class="small text-muted mb-1"><i class="fas fa-truck text-success me-2"></i>Giao hàng</p>
@@ -199,53 +216,79 @@
                     </div>
                     <div class="col-sm-6 mb-3">
                         <p class="small text-muted mb-1"><i class="fas fa-sync text-success me-2"></i>Hoàn lại</p>
-                        <p class="small">Chấp nhận hoàn lại trong 7 ngày</p>
+                        <p class="small">Chấp nhận hoàn lại trong 2 giờ</p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Tabs: Description & Reviews -->
+    <!-- Tabs: Description / Info / Reviews -->
     <div class="row mb-5">
         <div class="col-12">
-            <ul class="nav nav-tabs mb-4" role="tablist">
+            <ul class="nav product-detail-tabs justify-content-center gap-2 mb-4" role="tablist">
                 <li class="nav-item" role="presentation">
                     <button class="nav-link active" id="description-tab" data-bs-toggle="tab" data-bs-target="#description" type="button" role="tab">
-                        <i class="fas fa-info-circle me-2"></i>Chi tiết
+                        Mô tả
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="information-tab" data-bs-toggle="tab" data-bs-target="#information" type="button" role="tab">
+                        Thông tin
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button" role="tab">
-                        <i class="fas fa-comments me-2"></i>Đánh giá ({{ $reviewCount }})
+                        Đánh giá ({{ $reviewCount }})
                     </button>
                 </li>
             </ul>
 
             <!-- Tab Content -->
-            <div class="tab-content">
+            <div class="tab-content product-detail-tab-content">
                 <!-- Description Tab -->
                 <div class="tab-pane fade show active" id="description" role="tabpanel">
-                    <div class="p-4 bg-light rounded-3">
+                    <div class="p-4">
+                        <p class="mb-3">
+                            <strong>{{ $product->name }}</strong>
+                            {{ $product->description }}
+                        </p>
+                        <p class="mb-0 text-muted">
+                            Tham khảo thêm các mẫu hoa tại HUONGHOAXINH để lựa chọn thiết kế phù hợp cho từng dịp đặc biệt.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Information Tab -->
+                <div class="tab-pane fade" id="information" role="tabpanel">
+                    <div class="p-4">
                         <h5 class="mb-3">Thông tin sản phẩm</h5>
-                        <p>{{ $product->description }}</p>
-                        <h5 class="mt-4 mb-3">Chi tiết kỹ thuật</h5>
-                        <table class="table table-sm">
+                        <table class="table table-sm align-middle mb-0">
                             <tr>
-                                <td class="fw-bold">SKU</td>
+                                <td class="fw-semibold text-muted" style="width: 180px;">SKU</td>
                                 <td>#{{ $product->id }}</td>
                             </tr>
                             <tr>
-                                <td class="fw-bold">Danh mục</td>
+                                <td class="fw-semibold text-muted">Danh mục</td>
                                 <td>{{ $product->category->name }}</td>
                             </tr>
                             <tr>
-                                <td class="fw-bold">Giá</td>
+                                <td class="fw-semibold text-muted">Giá bán</td>
                                 <td>{{ number_format($product->price, 0, ',', '.') }} ₫</td>
                             </tr>
                             <tr>
-                                <td class="fw-bold">Kho</td>
+                                <td class="fw-semibold text-muted">Tồn kho</td>
                                 <td>{{ $product->stock }} sản phẩm</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold text-muted">Kích cỡ</td>
+                                <td>
+                                    @if($product->sizes && count($product->sizes) > 0)
+                                        {{ collect($product->sizes)->pluck('size')->implode(', ') }}
+                                    @else
+                                        Đang cập nhật
+                                    @endif
+                                </td>
                             </tr>
                         </table>
                     </div>
@@ -254,85 +297,108 @@
                 <!-- Reviews Tab -->
                 <div class="tab-pane fade" id="reviews" role="tabpanel">
                     <div class="p-4">
-                        @if($product->visibleReviews()->count() > 0)
-                            <!-- Reviews List -->
-                            <div class="mb-5">
-                                <h5 class="mb-4">Đánh giá từ khách hàng</h5>
-                                @foreach($product->visibleReviews as $review)
-                                    <div class="border-bottom pb-4 mb-4">
-                                        <div class="d-flex justify-content-between align-items-start mb-2">
-                                            <div>
-                                                <h6 class="mb-1">{{ $review->user->name }}</h6>
-                                                <div class="d-flex gap-2 align-items-center">
-                                                    @for($i = 1; $i <= 5; $i++)
-                                                        <i class="fas fa-star {{ $i <= $review->rating ? 'text-warning' : 'text-muted' }} small"></i>
-                                                    @endfor
-                                                    <span class="text-muted small">{{ $review->rating }} sao</span>
+                        <div class="row g-4">
+                            <div class="col-lg-7">
+                                <h4 class="reviews-title mb-4">{{ $reviewCount }} đánh giá cho {{ $product->name }}</h4>
+
+                                @if($product->visibleReviews()->count() > 0)
+                                    @foreach($product->visibleReviews as $review)
+                                        <div class="review-item mb-3">
+                                            <div class="d-flex gap-3">
+                                                <div class="review-avatar">
+                                                    <i class="fas fa-user"></i>
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <h6 class="mb-1">{{ $review->user->name }}</h6>
+                                                    <div class="d-flex gap-2 align-items-center mb-2">
+                                                        @for($i = 1; $i <= 5; $i++)
+                                                            <i class="fas fa-star {{ $i <= $review->rating ? 'text-warning' : 'text-muted' }} small"></i>
+                                                        @endfor
+                                                        <span class="text-muted small">{{ $review->rating }}/5</span>
+                                                    </div>
+                                                    <p class="mb-1 fst-italic text-muted">{{ $review->comment }}</p>
+                                                    <small class="text-muted">{{ $review->created_at->format('d/m/Y H:i') }}</small>
                                                 </div>
                                             </div>
-                                            <small class="text-muted">{{ $review->created_at->format('d/m/Y H:i') }}</small>
                                         </div>
-                                        <p class="text-muted mb-0">{{ $review->comment }}</p>
-                                    </div>
-                                @endforeach
+                                    @endforeach
+                                @else
+                                    <p class="text-muted py-4">Chưa có đánh giá nào cho sản phẩm này.</p>
+                                @endif
                             </div>
-                        @else
-                            <p class="text-center text-muted py-5">Chưa có đánh giá nào cho sản phẩm này.</p>
-                        @endif
 
-                        @auth
-                            <hr class="my-5">
-                            @if($userReview)
-                                <div class="alert alert-success border-0 shadow-sm">
-                                    <h6 class="fw-bold mb-2">Bạn đã đánh giá sản phẩm này</h6>
-                                    <div class="mb-1">
-                                        @for($i = 1; $i <= 5; $i++)
-                                            <i class="fas fa-star {{ $i <= $userReview->rating ? 'text-warning' : 'text-muted' }}"></i>
-                                        @endfor
-                                    </div>
-                                    <p class="mb-0 text-muted">{{ $userReview->comment }}</p>
-                                </div>
-                            @elseif($canReview)
-                                <h5 class="mb-4">Để lại đánh giá của bạn</h5>
-                                <p class="small text-muted mb-3">Chỉ khách đã mua sản phẩm trong đơn hàng <strong>đã thanh toán</strong> hoặc <strong>đã giao</strong> mới gửi đánh giá được.</p>
-                                <form action="{{ route('reviews.store') }}" method="POST">
-                                    @csrf
-                                    <input type="hidden" name="product_id" value="{{ $product->id }}">
-                                    <div class="mb-3">
-                                        <label class="form-label">Xếp hạng của bạn</label>
-                                        <div class="rating-input" id="ratingStars">
-                                            @for($i = 1; $i <= 5; $i++)
-                                                <i class="fas fa-star star-icon" data-rating="{{ $i }}" style="cursor: pointer; font-size: 24px; color: #ddd; transition: color 0.2s;"></i>
-                                            @endfor
+                            <div class="col-lg-5">
+                                <div class="review-form-wrap p-4">
+                                    <h4 class="mb-3">Thêm một đánh giá</h4>
+
+                                    @auth
+                                        @if($userReview)
+                                            <div class="alert alert-success border-0 shadow-sm mb-0">
+                                                <h6 class="fw-bold mb-2">Bạn đã đánh giá sản phẩm này</h6>
+                                                <div class="mb-1">
+                                                    @for($i = 1; $i <= 5; $i++)
+                                                        <i class="fas fa-star {{ $i <= $userReview->rating ? 'text-warning' : 'text-muted' }}"></i>
+                                                    @endfor
+                                                </div>
+                                                <p class="mb-0 text-muted">{{ $userReview->comment }}</p>
+                                            </div>
+                                        @elseif($canReview)
+                                            <p class="small text-muted mb-3">
+                                                Chỉ khách đã mua sản phẩm trong đơn hàng <strong>đã thanh toán</strong> hoặc <strong>đã giao</strong> mới gửi đánh giá được.
+                                            </p>
+                                            <form action="{{ route('reviews.store') }}" method="POST">
+                                                @csrf
+                                                <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                                <div class="mb-3">
+                                                    <label class="form-label fw-semibold">Đánh giá của bạn <span class="text-danger">*</span></label>
+                                                    <div class="rating-input" id="ratingStars">
+                                                        @for($i = 1; $i <= 5; $i++)
+                                                            <i class="fas fa-star star-icon" data-rating="{{ $i }}" style="cursor: pointer; font-size: 24px; color: #ddd; transition: color 0.2s;"></i>
+                                                        @endfor
+                                                    </div>
+                                                    <input type="hidden" id="ratingValue" name="rating" value="5" required>
+                                                </div>
+
+                                                <div class="mb-3">
+                                                    <label for="reviewComment" class="form-label fw-semibold">Nội dung đánh giá <span class="text-danger">*</span></label>
+                                                    <textarea class="form-control @error('comment') is-invalid @enderror" id="reviewComment" name="comment" rows="5"
+                                                              placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm..." required>{{ old('comment') }}</textarea>
+                                                    @error('comment')
+                                                        <div class="invalid-feedback">{{ $message }}</div>
+                                                    @enderror
+                                                </div>
+
+                                                <div class="row g-2 mb-3">
+                                                    <div class="col-sm-6">
+                                                        <label class="form-label fw-semibold">Tên <span class="text-danger">*</span></label>
+                                                        <input type="text" class="form-control" value="{{ auth()->user()->name }}" readonly>
+                                                    </div>
+                                                    <div class="col-sm-6">
+                                                        <label class="form-label fw-semibold">Email <span class="text-danger">*</span></label>
+                                                        <input type="email" class="form-control" value="{{ auth()->user()->email }}" readonly>
+                                                    </div>
+                                                </div>
+
+                                                <button type="submit" class="btn btn-success px-4 py-2 fw-bold">
+                                                    GỬI ĐI
+                                                </button>
+                                            </form>
+                                        @else
+                                            <div class="alert alert-info border-0 mb-0" role="alert">
+                                                <i class="fas fa-shopping-bag me-2"></i>
+                                                Mua và hoàn tất đơn hàng (đã thanh toán hoặc đã nhận hàng) để có thể đánh giá sản phẩm này.
+                                            </div>
+                                        @endif
+                                    @else
+                                        <div class="alert alert-info mb-0" role="alert">
+                                            <i class="fas fa-info-circle me-2"></i>
+                                            <a href="{{ route('login') }}">Đăng nhập</a> để để lại đánh giá cho sản phẩm này.
                                         </div>
-                                        <input type="hidden" id="ratingValue" name="rating" value="5" required>
+                                    @endauth
                                     </div>
-
-                                    <div class="mb-3">
-                                        <label for="reviewComment" class="form-label">Nhận xét của bạn</label>
-                                        <textarea class="form-control @error('comment') is-invalid @enderror" id="reviewComment" name="comment" rows="4"
-                                                  placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm..." required>{{ old('comment') }}</textarea>
-                                        @error('comment')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-
-                                    <button type="submit" class="btn btn-success">
-                                        <i class="fas fa-paper-plane me-2"></i>Gửi đánh giá
-                                    </button>
-                                </form>
-                            @else
-                                <div class="alert alert-info border-0" role="alert">
-                                    <i class="fas fa-shopping-bag me-2"></i>
-                                    Mua và hoàn tất đơn hàng (đã thanh toán hoặc đã nhận hàng) để có thể đánh giá sản phẩm này.
                                 </div>
-                            @endif
-                        @else
-                            <div class="alert alert-info" role="alert">
-                                <i class="fas fa-info-circle me-2"></i>
-                                <a href="{{ route('login') }}">Đăng nhập</a> để để lại đánh giá cho sản phẩm này.
                             </div>
-                        @endauth
+                        </div>
                     </div>
                 </div>
             </div>
@@ -589,18 +655,34 @@
 </script>
 
 <style>
+    .product-page-compact {
+        max-width: 1280px;
+    }
+    .product-detail-image {
+        height: 100%;
+        max-height: 460px;
+        object-fit: cover;
+    }
+    .product-detail-image-placeholder {
+        height: 460px;
+    }
+
     .product-hero {
         background: linear-gradient(135deg, rgba(25, 135, 84, 0.1), rgba(13, 110, 253, 0.08));
         border: 1px solid rgba(15, 23, 42, 0.08);
     }
+    .product-hero-title {
+        font-size: clamp(1.35rem, 1.9vw, 2rem);
+        line-height: 1.25;
+    }
     .product-hero .chip {
         display: inline-flex;
         align-items: center;
-        padding: 0.45rem 0.75rem;
+        padding: 0.35rem 0.65rem;
         border-radius: 999px;
         background: #fff;
         border: 1px solid rgba(15, 23, 42, 0.08);
-        font-size: 0.8rem;
+        font-size: 0.74rem;
         color: #334155;
     }
     .product-main-image {
@@ -684,10 +766,231 @@
         color: rgba(255, 255, 255, 0.8) !important;
     }
 
+    .product-detail-tabs .nav-link {
+        border: 1px solid rgba(15, 23, 42, 0.12);
+        border-radius: 999px;
+        padding: 0.45rem 1rem;
+        color: #334155;
+        background: #fff;
+        font-weight: 500;
+    }
+
+    .product-detail-tabs .nav-link:hover {
+        color: #0f766e;
+        border-color: rgba(15, 118, 110, 0.35);
+    }
+
+    .product-detail-tabs .nav-link.active {
+        color: #0f766e;
+        border-color: rgba(15, 118, 110, 0.35);
+        background: rgba(15, 118, 110, 0.08);
+    }
+
+    .product-detail-tab-content {
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        border-radius: 1rem;
+        background: #fff;
+    }
+
+    .highlights-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        border-bottom: 1px dashed #d1d5db;
+    }
+
+    .highlight-item {
+        text-align: center;
+        padding: 0.65rem 0.45rem;
+        border-right: 1px dashed #d1d5db;
+    }
+
+    .highlight-item:last-child {
+        border-right: 0;
+    }
+
+    .highlight-icon {
+        color: #0f766e;
+        font-size: 1.1rem;
+        margin-bottom: 0.35rem;
+    }
+
+    .highlight-text {
+        font-size: 0.82rem;
+        font-weight: 700;
+        line-height: 1.25;
+        color: #0f172a;
+    }
+
+    .reviews-title {
+        color: #0f766e;
+        font-weight: 700;
+        font-size: 1.8rem;
+    }
+
+    .review-item {
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        border-radius: 0.6rem;
+        background: #fafafa;
+        padding: 1rem;
+    }
+
+    .review-avatar {
+        width: 58px;
+        height: 58px;
+        border-radius: 50%;
+        background: #e5e7eb;
+        color: #9ca3af;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.7rem;
+        flex-shrink: 0;
+    }
+
+    .review-form-wrap {
+        border: 2px solid rgba(15, 118, 110, 0.8);
+        border-radius: 0.4rem;
+        background: #fff;
+    }
+
+    @media (min-width: 992px) {
+        .product-breadcrumb {
+            display: none;
+        }
+
+        .product-page-compact {
+            padding-top: 0.35rem !important;
+        }
+
+        .product-hero {
+            margin-bottom: 0.55rem !important;
+            padding: 0.65rem 0.95rem !important;
+        }
+
+        .product-hero-title {
+            font-size: clamp(1.12rem, 1.25vw, 1.42rem);
+            margin-bottom: 0.12rem !important;
+            line-height: 1.18;
+        }
+
+        .product-hero p.small {
+            font-size: 0.74rem !important;
+            line-height: 1.25;
+        }
+
+        .product-detail-image {
+            max-height: 315px;
+        }
+
+        .product-detail-image-placeholder {
+            height: 315px;
+        }
+
+        .compact-card {
+            border-radius: 0.85rem !important;
+            margin-bottom: 0.45rem !important;
+            padding-top: 0.55rem !important;
+            padding-bottom: 0.55rem !important;
+        }
+
+        #priceDisplay {
+            font-size: 1.75rem;
+            line-height: 1.1;
+        }
+
+        .product-highlights {
+            margin-bottom: 0.45rem !important;
+        }
+
+        .highlight-item {
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+        }
+
+        .highlight-icon {
+            font-size: 1rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .highlight-text {
+            font-size: 0.74rem;
+            line-height: 1.15;
+        }
+
+        .form-label.small {
+            margin-bottom: 0.2rem;
+        }
+
+        .size-selector {
+            gap: 6px;
+            margin-bottom: 4px;
+        }
+
+        .size-btn {
+            padding: 3px 10px;
+            font-size: 11px;
+        }
+
+        .compact-cart-btn {
+            padding: 0.42rem 0.7rem;
+            font-size: 0.94rem;
+        }
+
+        #quantity {
+            padding-top: 0.35rem;
+            padding-bottom: 0.35rem;
+        }
+
+        #decreaseQty,
+        #increaseQty {
+            padding-top: 0.28rem;
+            padding-bottom: 0.28rem;
+        }
+
+        .compact-shipping {
+            margin-top: 0.45rem !important;
+            padding-top: 0.55rem !important;
+        }
+
+        .compact-shipping .small {
+            margin-bottom: 0.2rem !important;
+            line-height: 1.3;
+        }
+
+        .compact-shipping .row > div {
+            margin-bottom: 0.25rem !important;
+        }
+    }
+
     @media (max-width: 576px) {
+        .product-page-compact {
+            padding-top: 0.75rem !important;
+        }
+
+        .product-hero-title {
+            font-size: 1.25rem;
+        }
+
         .size-btn {
             font-size: 12px;
             padding: 5px 12px;
+        }
+
+        .highlights-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            border-bottom: 0;
+        }
+
+        .highlight-item {
+            border-bottom: 1px dashed #d1d5db;
+        }
+
+        .highlight-item:nth-child(2n) {
+            border-right: 0;
+        }
+
+        .highlight-text {
+            font-size: 0.82rem;
         }
     }
 </style>

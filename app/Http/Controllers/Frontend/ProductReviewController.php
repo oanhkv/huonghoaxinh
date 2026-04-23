@@ -9,9 +9,32 @@ use App\Models\Review;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
 
 class ProductReviewController extends Controller
 {
+    public function create(Product $product): View|RedirectResponse
+    {
+        $user = Auth::user();
+        $existingReview = Review::where('user_id', $user->id)
+            ->where('product_id', $product->id)
+            ->first();
+
+        if ($existingReview) {
+            return redirect()
+                ->route('product.show', $product->slug)
+                ->with('success', 'Bạn đã đánh giá sản phẩm này trước đó.');
+        }
+
+        if (! $this->userCanReviewProduct($user->id, $product->id)) {
+            return redirect()
+                ->route('orders.history')
+                ->with('error', 'Bạn chỉ có thể đánh giá sản phẩm đã mua và đã nhận hàng.');
+        }
+
+        return view('frontend.reviews.create', compact('product'));
+    }
+
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
@@ -42,7 +65,7 @@ class ProductReviewController extends Controller
         $product = Product::find($productId);
 
         return redirect()
-            ->route('product.show', $product->slug)
+            ->to(route('product.show', $product->slug).'#reviews')
             ->with('success', 'Cảm ơn bạn đã đánh giá sản phẩm.');
     }
 
