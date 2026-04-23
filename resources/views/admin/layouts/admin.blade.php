@@ -386,7 +386,7 @@
                         <span class="badge bg-success px-3 py-2">Online</span>
                         <div class="dropdown">
                             <button class="btn navbar-user-btn dropdown-toggle px-3" data-bs-toggle="dropdown">
-                                <i class="fas fa-user-circle"></i> {{ Auth::user()->name }}
+                                <i class="fas fa-user-circle"></i> {{ Auth::guard('admin')->user()->name ?? 'Admin' }}
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a class="dropdown-item" href="{{ route('admin.profile.edit') }}">Thông tin cá nhân</a></li>
@@ -426,7 +426,7 @@
         </div>
     </div>
 
-    <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display:none;">
+    <form id="logout-form" action="{{ route('admin.logout') }}" method="POST" style="display:none;">
         @csrf
     </form>
 

@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Admin;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -13,15 +15,21 @@ class AdminProfileController extends Controller
 {
     public function edit(Request $request): View
     {
+        /** @var Admin $admin */
+        $admin = Auth::guard('admin')->user();
+
         return view('admin.profile.edit', [
-            'user' => $request->user(),
-            'hasPhone' => Schema::hasColumn('users', 'phone'),
-            'hasAddress' => Schema::hasColumn('users', 'address'),
+            'user' => $admin,
+            'hasPhone' => Schema::hasColumn('admins', 'phone'),
+            'hasAddress' => false,
         ]);
     }
 
     public function update(Request $request): RedirectResponse
     {
+        /** @var Admin $admin */
+        $admin = Auth::guard('admin')->user();
+
         $rules = [
             'name' => ['required', 'string', 'max:255'],
             'email' => [
@@ -29,37 +37,24 @@ class AdminProfileController extends Controller
                 'string',
                 'email',
                 'max:255',
-                Rule::unique('users', 'email')->ignore($request->user()->id),
+                Rule::unique('admins', 'email')->ignore($admin->id),
             ],
         ];
 
-        if (Schema::hasColumn('users', 'phone')) {
+        if (Schema::hasColumn('admins', 'phone')) {
             $rules['phone'] = ['nullable', 'string', 'max:20'];
-        }
-
-        if (Schema::hasColumn('users', 'address')) {
-            $rules['address'] = ['nullable', 'string', 'max:255'];
         }
 
         $validated = $request->validate($rules);
 
-        $user = $request->user();
-        $user->name = $validated['name'];
-        $user->email = $validated['email'];
+        $admin->name = $validated['name'];
+        $admin->email = $validated['email'];
 
         if (array_key_exists('phone', $validated)) {
-            $user->phone = $validated['phone'];
+            $admin->phone = $validated['phone'];
         }
 
-        if (array_key_exists('address', $validated)) {
-            $user->address = $validated['address'];
-        }
-
-        if ($user->isDirty('email')) {
-            $user->email_verified_at = null;
-        }
-
-        $user->save();
+        $admin->save();
 
         return redirect()
             ->route('admin.profile.edit')
