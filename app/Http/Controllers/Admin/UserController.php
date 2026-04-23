@@ -3,41 +3,47 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Admin;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
-use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
     public function create()
     {
+        if (! Schema::hasTable('admins')) {
+            return redirect()->route('admin.users.admins')
+                ->with('error', 'Chưa có bảng admins. Vui lòng chạy migrate trước.');
+        }
+
         return view('admin.users.form', [
-            'user' => new User,
+            'user' => new Admin,
             'mode' => 'create',
             'isAdminForm' => true,
-            'hasPhone' => Schema::hasColumn('users', 'phone'),
-            'hasAddress' => Schema::hasColumn('users', 'address'),
+            'hasPhone' => Schema::hasColumn('admins', 'phone'),
+            'hasAddress' => false,
         ]);
     }
 
     public function store(Request $request)
     {
+        if (! Schema::hasTable('admins')) {
+            return redirect()->route('admin.users.admins')
+                ->with('error', 'Chưa có bảng admins. Vui lòng chạy migrate trước.');
+        }
+
         $rules = [
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:admins,email'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ];
 
-        if (Schema::hasColumn('users', 'phone')) {
+        if (Schema::hasColumn('admins', 'phone')) {
             $rules['phone'] = ['nullable', 'string', 'max:20'];
-        }
-
-        if (Schema::hasColumn('users', 'address')) {
-            $rules['address'] = ['nullable', 'string', 'max:255'];
         }
 
         $validated = $request->validate($rules);
@@ -52,24 +58,7 @@ class UserController extends Controller
             $payload['phone'] = $validated['phone'];
         }
 
-        if (array_key_exists('address', $validated)) {
-            $payload['address'] = $validated['address'];
-        }
-
-        if (Schema::hasColumn('users', 'role')) {
-            $payload['role'] = 'admin';
-        }
-
-        $user = User::create($payload);
-
-        $adminRole = Role::firstOrCreate([
-            'name' => 'admin',
-            'guard_name' => 'web',
-        ]);
-
-        if (! $user->hasRole($adminRole->name)) {
-            $user->assignRole($adminRole);
-        }
+        Admin::create($payload);
 
         return redirect()->route('admin.users.admins')
             ->with('success', 'Thêm tài khoản admin thành công!');
@@ -87,7 +76,25 @@ class UserController extends Controller
 
     public function admins(Request $request)
     {
-        $users = $this->buildUsersQuery($request, true)->latest()->paginate(10);
+        if (! Schema::hasTable('admins')) {
+            return redirect()->route('admin.users.index')
+                ->with('error', 'Chưa có bảng admins. Vui lòng chạy migrate trước.');
+        }
+
+        $users = Admin::query()
+            ->when($request->filled('search'), function ($q) use ($request) {
+                $search = $request->search;
+                $q->where(function ($inner) use ($search) {
+                    $inner->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
+
+                    if (Schema::hasColumn('admins', 'phone')) {
+                        $inner->orWhere('phone', 'like', "%{$search}%");
+                    }
+                });
+            })
+            ->latest()
+            ->paginate(10);
 
         return view('admin.users.index', [
             'users' => $users,

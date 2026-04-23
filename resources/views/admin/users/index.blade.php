@@ -83,43 +83,47 @@
                         <td>{{ $user->phone ?? 'Chưa cập nhật' }}</td>
                         <td>{{ $user->created_at->format('d/m/Y') }}</td>
                         <td>
-                            <a href="{{ route('admin.users.show', $user) }}" class="btn btn-sm btn-info me-1" title="Xem chi tiết">
-                                <i class="fas fa-eye"></i>
-                            </a>
-                            <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-sm btn-warning me-1" title="Sửa">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                            @if(! $user->hasRole('admin'))
+                            @if(! $isAdminList)
+                                <a href="{{ route('admin.users.show', $user) }}" class="btn btn-sm btn-info me-1" title="Xem chi tiết">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-sm btn-warning me-1" title="Sửa">
+                                    <i class="fas fa-edit"></i>
+                                </a>
                                 <button type="button" class="btn btn-sm btn-danger" 
                                         data-bs-toggle="modal" data-bs-target="#deleteModal{{ $user->id }}" title="Xóa">
                                     <i class="fas fa-trash"></i>
                                 </button>
+                            @else
+                                <span class="text-muted small">Được lưu ở bảng admins</span>
                             @endif
                         </td>
                     </tr>
 
                     <!-- Modal Xóa -->
-                    <div class="modal fade" id="deleteModal{{ $user->id }}" tabindex="-1">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title">Xác nhận xóa</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                </div>
-                                <div class="modal-body">
-                                    Bạn có chắc muốn xóa tài khoản <strong>"{{ $user->name }}"</strong> không?
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                                    <form action="{{ route('admin.users.destroy', $user) }}" method="POST" style="display:inline;">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-danger">Xóa</button>
-                                    </form>
+                    @if(! $isAdminList)
+                        <div class="modal fade" id="deleteModal{{ $user->id }}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Xác nhận xóa</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        Bạn có chắc muốn xóa tài khoản <strong>"{{ $user->name }}"</strong> không?
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                                        <form action="{{ route('admin.users.destroy', $user) }}" method="POST" style="display:inline;">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-danger">Xóa</button>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    @endif
 
                     @empty
                     <tr>
