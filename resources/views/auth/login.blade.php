@@ -69,7 +69,7 @@
 
                         <!-- Tab Admin -->
                         <div class="tab-pane fade" id="admin" role="tabpanel">
-                            <form method="POST" action="{{ route('login') }}">
+                            <form method="POST" action="{{ route('admin.login.store') }}">
                                 @csrf
                                 
                                 <div class="mb-3">
@@ -84,8 +84,6 @@
                                            placeholder="Mật khẩu Admin" required>
                                 </div>
 
-                                <input type="hidden" name="is_admin" value="1">
-
                                 <button type="submit" class="btn btn-danger btn-lg w-100">
                                     <i class="fas fa-shield-alt"></i> ĐĂNG NHẬP QUẢN TRỊ VIÊN
                                 </button>
@@ -96,7 +94,7 @@
 
                     <div class="text-center mt-4">
                         <span>Chưa có tài khoản? </span>
-                        <a href="{{ route('register') }}" class="text-danger fw-bold">Đăng ký ngay</a>
+                        <a href="{{ route('register.user') }}" class="text-success fw-bold text-decoration-none">Đăng ký khách hàng</a>
                     </div>
                 </div>
             </div>

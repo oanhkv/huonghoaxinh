@@ -45,13 +45,27 @@ class AuthenticatedSessionController extends Controller
             ])->onlyInput('email');
         }
 
+        $intendedUrl = (string) $request->session()->get('url.intended', '');
+        $intendedPath = (string) parse_url($intendedUrl, PHP_URL_PATH);
+        $wantsAdminArea = str_starts_with($intendedPath, '/admin');
+
+        if ($wantsAdminArea && ! $user?->hasRole('admin')) {
+            Auth::guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect()->route('login')->withErrors([
+                'email' => 'Tài khoản của bạn không có quyền truy cập khu vực quản trị.',
+            ])->onlyInput('email');
+        }
+
         $this->mergeGuestCartToUserCart();
 
         if ($user?->hasRole('admin')) {
             return redirect()->intended(route('admin.dashboard'));
         }
 
-        return redirect()->intended(route('home'));
+        return redirect()->route('home');
     }
 
     private function mergeGuestCartToUserCart(): void

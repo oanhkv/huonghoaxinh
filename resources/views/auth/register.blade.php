@@ -3,16 +3,40 @@
 @section('title', 'Đăng Ký - Hương Hoa Xinh')
 
 @section('content')
+@php
+    $registerType = $registerType ?? 'user';
+    $isAdminRegister = $registerType === 'admin';
+    $allowBootstrapAdmin = $allowBootstrapAdmin ?? false;
+@endphp
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-lg-6">
             
             <div class="card shadow-lg border-0">
                 <div class="card-body p-5">
-                    <h3 class="text-center fw-bold mb-4">ĐĂNG KÝ TÀI KHOẢN</h3>
+                    <h3 class="text-center fw-bold mb-4">
+                        {{ $isAdminRegister ? 'ĐĂNG KÝ QUẢN TRỊ VIÊN' : 'ĐĂNG KÝ TÀI KHOẢN KHÁCH HÀNG' }}
+                    </h3>
 
-                    <form method="POST" action="{{ route('register') }}">
+                    <div class="d-flex gap-2 mb-4">
+                        <a href="{{ route('register.user') }}" class="btn {{ $isAdminRegister ? 'btn-outline-success' : 'btn-success' }} w-100">
+                            👤 Khách hàng
+                        </a>
+                        @if($isAdminRegister || auth('admin')->check())
+                            <a href="{{ route('register.admin') }}" class="btn {{ $isAdminRegister ? 'btn-danger' : 'btn-outline-danger' }} w-100">
+                                ⚡ Quản trị viên
+                            </a>
+                        @endif
+                    </div>
+
+                    <form method="POST" action="{{ $isAdminRegister ? route('register.admin.store') : route('register') }}">
                         @csrf
+
+                        @if($isAdminRegister && $allowBootstrapAdmin)
+                            <div class="alert alert-warning py-2 small">
+                                Bạn đang khởi tạo admin đầu tiên. Vui lòng nhập mã khởi tạo quản trị.
+                            </div>
+                        @endif
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
@@ -33,6 +57,17 @@
                                 @enderror
                             </div>
                         </div>
+
+                        @if($isAdminRegister && $allowBootstrapAdmin)
+                            <div class="mb-3">
+                                <input type="password" name="bootstrap_code"
+                                       class="form-control @error('bootstrap_code') is-invalid @enderror"
+                                       placeholder="Mã khởi tạo admin *" required>
+                                @error('bootstrap_code')
+                                    <span class="text-danger small">{{ $message }}</span>
+                                @enderror
+                            </div>
+                        @endif
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
@@ -70,8 +105,8 @@
                             </div>
                         </div>
 
-                        <button type="submit" class="btn btn-danger btn-lg w-100 mb-3">
-                            ĐĂNG KÝ NGAY
+                        <button type="submit" class="btn {{ $isAdminRegister ? 'btn-danger' : 'btn-success' }} btn-lg w-100 mb-3">
+                            {{ $isAdminRegister ? 'ĐĂNG KÝ ADMIN' : 'ĐĂNG KÝ KHÁCH HÀNG' }}
                         </button>
 
                         <div class="text-center">
