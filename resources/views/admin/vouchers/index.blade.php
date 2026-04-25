@@ -5,10 +5,10 @@
 @section('content')
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
+        {{-- <div>
             <h3 class="fw-bold mb-0">Quản lý Mã giảm giá</h3>
             <small class="text-muted">Tạo mã giảm theo phần trăm hoặc số tiền cố định</small>
-        </div>
+        </div> --}}
         <a href="{{ route('admin.vouchers.create') }}" class="btn btn-success">+ Tạo mã mới</a>
     </div>
 

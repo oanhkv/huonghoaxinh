@@ -3,419 +3,703 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title') - Admin Hương Hoa Xinh</title>
-    
+    <title>@yield('title') · Admin Hương Hoa Xinh</title>
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
+
+    @php
+        $unreadMsg = \Illuminate\Support\Facades\Schema::hasTable('contact_messages')
+            ? \App\Models\ContactMessage::where('status', 'new')->count() : 0;
+        $pendingOrd = \App\Models\Order::where('status', 'pending')->count();
+        $lowStock = \App\Models\Product::where('is_active', true)->where('stock', '<=', 5)->count();
+    @endphp
+
     <style>
         :root {
-            --admin-bg: #f5faff;
-            --admin-surface: #ffffff;
-            --admin-border: #d7e6f5;
-            --admin-text: #10233d;
-            --admin-muted: #6b7a90;
-            --admin-primary: #4a8df7;
-            --admin-primary-strong: #3577e8;
-            --admin-success: #16a34a;
-            --admin-warning: #f59e0b;
-            --admin-danger: #dc2626;
-            --admin-sidebar: linear-gradient(180deg, #cfe6fb 0%, #bcd8f4 100%);
-            --admin-sidebar-text: #24496f;
-            --admin-sidebar-active: linear-gradient(135deg, #4a8df7 0%, #3577e8 100%);
+            --hhx-pink: #d63384;
+            --hhx-pink-2: #f06595;
+            --hhx-green: #198754;
+            --hhx-green-2: #20a464;
+            --hhx-text: #0f172a;
+            --hhx-muted: #64748b;
+            --hhx-border: #e2e8f0;
+            --hhx-bg: #f8fafc;
+
+            --sidebar-w: 264px;
+            --topbar-h: 70px;
+            /* Tone xanh dương pastel - sky 100 → 300 */
+            --sidebar-bg: linear-gradient(180deg, #e0f2fe 0%, #bae6fd 50%, #93c5fd 100%);
+            --sidebar-text: #0c4a6e;
+            --sidebar-text-muted: #075985;
+            --sidebar-border: rgba(7, 89, 133, 0.12);
         }
 
+        * { box-sizing: border-box; }
         body {
             font-family: 'Manrope', sans-serif;
             background:
-                radial-gradient(circle at top right, rgba(47, 128, 237, 0.10), transparent 28%),
-                linear-gradient(180deg, #f8fbff 0%, #f4f7fb 100%);
-            color: var(--admin-text);
+                radial-gradient(900px circle at 5% 0%, rgba(214, 51, 132, 0.05), transparent 40%),
+                radial-gradient(900px circle at 95% 100%, rgba(25, 135, 84, 0.05), transparent 40%),
+                var(--hhx-bg);
+            color: var(--hhx-text);
+            min-height: 100vh;
         }
 
-        .admin-shell {
-            min-height: 100vh;
-            display: flex;
-        }
+        .admin-shell { display: flex; min-height: 100vh; }
 
-        .sidebar {
+        /* ============ SIDEBAR (xanh dương pastel) ============ */
+        .admin-sidebar {
+            width: var(--sidebar-w);
             min-height: 100vh;
-            background: var(--admin-sidebar);
-            color: var(--admin-sidebar-text);
-            width: 260px;
+            background: var(--sidebar-bg);
+            color: var(--sidebar-text);
             position: sticky;
             top: 0;
-            box-shadow: 0 12px 30px rgba(79, 130, 216, 0.20);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 6px 0 24px rgba(14, 116, 144, 0.12);
+            z-index: 10;
         }
-
-        .brand-mark {
-            width: 58px;
-            height: 58px;
-            border-radius: 20px;
-            display: grid;
-            place-items: center;
-            background: linear-gradient(135deg, #ffffff 0%, #f4f8ff 100%);
-            border: 1px solid rgba(74, 141, 247, 0.24);
-            box-shadow: 0 14px 28px rgba(74, 141, 247, 0.18);
-            position: relative;
-        }
-
-        .brand-mark::after {
+        .admin-sidebar::before {
             content: '';
             position: absolute;
-            inset: 6px;
-            border-radius: 16px;
-            background: linear-gradient(135deg, rgba(74, 141, 247, 0.16), rgba(56, 189, 248, 0.08));
+            top: 0; right: 0;
+            width: 3px; height: 100%;
+            background: linear-gradient(180deg, var(--hhx-pink) 0%, var(--hhx-green) 100%);
         }
 
-        .sidebar-title {
-            letter-spacing: 0.08em;
-            font-size: 0.72rem;
-            text-transform: uppercase;
-            color: #35608d;
+        .sidebar-brand {
+            padding: 22px 20px 18px;
+            border-bottom: 1px solid var(--sidebar-border);
+            display: flex; align-items: center; gap: 12px;
         }
-
-        .brand-name {
-            color: #173b63;
-            letter-spacing: -0.04em;
-            text-shadow: 0 1px 0 rgba(255,255,255,0.6);
+        .sidebar-brand-icon {
+            width: 44px; height: 44px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--hhx-pink), var(--hhx-pink-2));
+            display: grid; place-items: center;
+            font-size: 1.2rem;
+            box-shadow: 0 8px 20px rgba(214, 51, 132, 0.35);
         }
-
-        .brand-subtitle {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            margin-top: 6px;
-            padding: 4px 10px;
-            border-radius: 999px;
-            background: rgba(255,255,255,0.56);
-            color: #3a5f85;
-            font-size: 0.72rem;
+        .sidebar-brand-name {
             font-weight: 800;
-            letter-spacing: 0.08em;
+            color: #0c4a6e;
+            font-size: 1.05rem;
+            letter-spacing: -0.01em;
+            line-height: 1.2;
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+        }
+        .sidebar-brand-tag {
+            font-size: 0.7rem;
+            color: #0369a1;
+            letter-spacing: 0.06em;
             text-transform: uppercase;
+            font-weight: 700;
+            opacity: 0.78;
         }
 
-        .nav-link {
-            color: var(--admin-sidebar-text);
-            padding: 12px 16px;
-            border-radius: 14px;
-            margin: 4px 8px;
+        .sidebar-section-label {
+            padding: 16px 22px 8px;
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: #0369a1;
+            font-weight: 800;
+            opacity: 0.72;
+        }
+
+        .sidebar-nav {
+            flex-grow: 1;
+            padding: 0 12px 20px;
+            overflow-y: auto;
+            list-style: none;
+            margin: 0;
+        }
+        .sidebar-nav::-webkit-scrollbar { width: 6px; }
+        .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(2, 132, 199, 0.18); border-radius: 6px; }
+
+        .sidebar-link {
+            display: flex; align-items: center; gap: 12px;
+            padding: 11px 14px;
+            border-radius: 12px;
+            color: #0c4a6e;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.92rem;
+            margin-bottom: 4px;
             transition: all 0.2s ease;
+            position: relative;
+        }
+        .sidebar-link:hover {
+            background: rgba(255, 255, 255, 0.55);
+            color: #075985;
+            transform: translateX(2px);
+            box-shadow: 0 4px 12px rgba(14, 116, 144, 0.12);
+        }
+        .sidebar-link.active {
+            background: linear-gradient(135deg, var(--hhx-pink), var(--hhx-pink-2));
+            color: #fff;
+            box-shadow: 0 10px 20px rgba(214, 51, 132, 0.35);
+            transform: none;
+        }
+        .sidebar-link.active::before {
+            content: '';
+            position: absolute;
+            left: -12px; top: 50%; transform: translateY(-50%);
+            width: 4px; height: 24px; border-radius: 4px;
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(255,255,255,0.4);
+        }
+        .sidebar-link i:first-child {
+            width: 22px; text-align: center;
+            font-size: 0.95rem;
+            color: #0369a1;
+            transition: color 0.2s ease;
+        }
+        .sidebar-link:hover i:first-child { color: #d63384; }
+        .sidebar-link.active i:first-child { color: #fff; }
+
+        .sidebar-link .sidebar-badge {
+            margin-left: auto;
+            background: var(--hhx-pink);
+            color: #fff;
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 999px;
+            min-width: 22px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(214, 51, 132, 0.3);
+        }
+        .sidebar-link.active .sidebar-badge { background: rgba(255, 255, 255, 0.3); box-shadow: none; }
+        .sidebar-link .arrow {
+            margin-left: auto;
+            transition: transform 0.2s ease;
+            font-size: 0.75rem;
+            opacity: 0.6;
+        }
+        .sidebar-link[aria-expanded="true"] .arrow { transform: rotate(90deg); }
+
+        .sidebar-submenu {
+            padding-left: 30px;
+            margin-bottom: 6px;
+        }
+        .sidebar-submenu .sidebar-link {
+            font-size: 0.85rem;
+            padding: 8px 12px;
+            color: #0369a1;
             font-weight: 600;
         }
-        .nav-link:hover, .nav-link.active {
-            background: var(--admin-sidebar-active);
-            color: white;
-            transform: translateX(2px);
-            box-shadow: 0 10px 20px rgba(53, 119, 232, 0.22);
+        .sidebar-submenu .sidebar-link:hover { color: #075985; }
+        .sidebar-submenu .sidebar-link.active {
+            background: rgba(214, 51, 132, 0.16);
+            color: #b02a6c;
+            box-shadow: none;
+            font-weight: 700;
         }
-        .sidebar-group .nav-link {
-            margin-bottom: 0;
+        .sidebar-submenu .sidebar-link.active::before { display: none; }
+        .sidebar-submenu .sidebar-link.active i:first-child { color: #d63384; }
+
+        .sidebar-footer {
+            padding: 16px 20px;
+            border-top: 1px solid var(--sidebar-border);
+            font-size: 0.78rem;
+            color: #0369a1;
         }
-        .submenu .nav-link {
-            margin-left: 18px;
-            font-size: 0.95rem;
-            padding: 10px 14px;
+        .sidebar-footer a { color: #0c4a6e; text-decoration: none; font-weight: 700; }
+        .sidebar-footer a:hover { color: #d63384; }
+
+        /* ============ MAIN ============ */
+        .admin-main { flex-grow: 1; min-width: 0; }
+
+        .admin-topbar {
+            position: sticky; top: 0; z-index: 20;
+            height: var(--topbar-h);
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(14px);
+            border-bottom: 1px solid var(--hhx-border);
+            padding: 0 24px;
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 16px;
         }
-        @media (hover: hover) {
-            .sidebar-group:hover .collapse {
-                display: block;
-            }
+        .topbar-left { display: flex; align-items: center; gap: 18px; min-width: 0; flex: 1; }
+        .topbar-toggle {
+            display: none;
+            width: 38px; height: 38px;
+            border-radius: 10px;
+            background: var(--hhx-bg);
+            border: 0; color: var(--hhx-text);
         }
-        @media (hover: hover) {
-            .account-group:hover .collapse {
-                display: block;
-            }
+        .topbar-title-wrap { min-width: 0; }
+        .topbar-eyebrow {
+            font-size: 0.72rem;
+            color: var(--hhx-muted);
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            font-weight: 600;
         }
-        .navbar-admin {
-            background: rgba(255,255,255,0.88);
-            backdrop-filter: blur(16px);
-            border-bottom: 1px solid rgba(230, 235, 242, 0.9);
-        }
-        .page-title {
+        .topbar-title {
             font-weight: 800;
-            letter-spacing: -0.03em;
+            font-size: 1.2rem;
+            margin: 0;
+            letter-spacing: -0.02em;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
         }
-        .admin-content {
-            padding: 24px;
+
+        .topbar-search {
+            position: relative;
+            max-width: 320px;
+            flex-grow: 1;
         }
-        .card {
-            border: 1px solid var(--admin-border);
+        .topbar-search input {
+            width: 100%;
+            background: var(--hhx-bg);
+            border: 1px solid transparent;
+            border-radius: 999px;
+            padding: 9px 16px 9px 40px;
+            font-size: 0.88rem;
+            transition: all 0.2s ease;
+        }
+        .topbar-search input:focus {
+            outline: 0;
+            border-color: var(--hhx-pink);
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(214, 51, 132, 0.08);
+        }
+        .topbar-search i {
+            position: absolute;
+            left: 14px; top: 50%; transform: translateY(-50%);
+            color: var(--hhx-muted);
+            font-size: 0.85rem;
+        }
+
+        .topbar-actions { display: flex; align-items: center; gap: 8px; }
+        .topbar-btn {
+            position: relative;
+            width: 40px; height: 40px;
+            border-radius: 12px;
+            background: var(--hhx-bg);
+            border: 1px solid var(--hhx-border);
+            color: var(--hhx-text);
+            display: grid; place-items: center;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+        .topbar-btn:hover {
+            background: #fff;
+            color: var(--hhx-pink);
+            border-color: var(--hhx-pink);
+            transform: translateY(-1px);
+        }
+        .topbar-btn-dot {
+            position: absolute;
+            top: 7px; right: 8px;
+            width: 8px; height: 8px;
+            background: var(--hhx-pink);
+            border: 2px solid #fff;
+            border-radius: 50%;
+        }
+        .topbar-btn-count {
+            position: absolute;
+            top: -5px; right: -5px;
+            background: var(--hhx-pink);
+            color: #fff;
+            font-size: 0.62rem;
+            font-weight: 700;
+            min-width: 18px; height: 18px;
+            border-radius: 999px;
+            padding: 0 5px;
+            display: grid; place-items: center;
+            border: 2px solid #fff;
+        }
+
+        .topbar-user {
+            display: flex; align-items: center; gap: 10px;
+            padding: 4px 14px 4px 4px;
+            background: var(--hhx-bg);
+            border: 1px solid var(--hhx-border);
+            border-radius: 999px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .topbar-user:hover {
+            background: #fff;
+            border-color: var(--hhx-pink);
+        }
+        .topbar-user-avatar {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--hhx-pink), var(--hhx-pink-2));
+            color: #fff;
+            display: grid; place-items: center;
+            font-weight: 800;
+            font-size: 0.85rem;
+        }
+        .topbar-user-name {
+            font-weight: 700;
+            font-size: 0.85rem;
+            line-height: 1;
+        }
+        .topbar-user-role {
+            font-size: 0.7rem;
+            color: var(--hhx-muted);
+        }
+
+        /* ============ CONTENT ============ */
+        .admin-content { padding: 28px; }
+
+        .admin-card {
+            background: #fff;
+            border: 1px solid var(--hhx-border);
             border-radius: 18px;
-            box-shadow: 0 10px 28px rgba(16, 35, 61, 0.06);
+            box-shadow: 0 6px 22px rgba(15, 23, 42, 0.04);
+            overflow: hidden;
+        }
+        .admin-card-header {
+            padding: 18px 22px;
+            border-bottom: 1px solid var(--hhx-border);
+            background: #fff;
+            display: flex; align-items: center; justify-content: space-between; gap: 12px;
+            flex-wrap: wrap;
+        }
+        .admin-card-title {
+            font-weight: 800;
+            font-size: 1rem;
+            margin: 0;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .admin-card-title i {
+            width: 32px; height: 32px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(214, 51, 132, 0.12), rgba(25, 135, 84, 0.1));
+            color: var(--hhx-pink);
+            display: grid; place-items: center;
+            font-size: 0.88rem;
+        }
+
+        /* Override Bootstrap card to use our style */
+        .card {
+            border: 1px solid var(--hhx-border);
+            border-radius: 18px;
+            box-shadow: 0 6px 22px rgba(15, 23, 42, 0.04);
         }
         .card-header {
             background: #fff;
-            border-bottom: 1px solid var(--admin-border);
+            border-bottom: 1px solid var(--hhx-border);
             border-top-left-radius: 18px;
             border-top-right-radius: 18px;
-        }
-        .table {
-            margin-bottom: 0;
-        }
-        .table thead th {
-            font-size: 0.82rem;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-            color: #355071;
-            background: linear-gradient(180deg, #eff6ff 0%, #e8f1ff 100%);
-            border-bottom: 1px solid var(--admin-border);
-            padding-top: 14px;
-            padding-bottom: 14px;
-        }
-        .table tbody tr:hover {
-            background: #f8fbff;
-        }
-        .admin-table {
-            border-collapse: separate;
-            border-spacing: 0;
-        }
-        .admin-table thead th:first-child {
-            border-top-left-radius: 16px;
-        }
-        .admin-table thead th:last-child {
-            border-top-right-radius: 16px;
-        }
-        .admin-table tbody td {
-            vertical-align: middle;
-            border-color: #edf2f7;
-            padding-top: 14px;
-            padding-bottom: 14px;
-        }
-        .card-stat {
-            border: none;
-            border-radius: 18px;
-            transition: all 0.25s ease;
-            overflow: hidden;
-        }
-        .card-stat:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 18px 36px rgba(0,0,0,0.12);
-        }
-        .btn {
-            border-radius: 12px;
             font-weight: 700;
         }
-        .btn-outline-success {
-            border-color: #22c55e;
-            color: #15803d;
+
+        /* Tables */
+        .table { margin-bottom: 0; }
+        .table thead th {
+            font-size: 0.74rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--hhx-muted);
+            background: var(--hhx-bg);
+            border-bottom: 1px solid var(--hhx-border);
+            padding: 14px 16px;
+            font-weight: 700;
         }
-        .btn-outline-success:hover {
-            background: #22c55e;
-            border-color: #22c55e;
+        .table tbody tr { transition: background 0.15s ease; }
+        .table tbody tr:hover { background: var(--hhx-bg); }
+        .table tbody td {
+            padding: 14px 16px;
+            vertical-align: middle;
+            border-color: #f1f5f9;
         }
-        .btn-outline-primary {
-            border-color: var(--admin-primary);
-            color: var(--admin-primary);
-        }
-        .btn-outline-primary:hover {
-            background: var(--admin-primary);
-            border-color: var(--admin-primary);
-        }
-        .btn-primary {
-            background: linear-gradient(135deg, #2f80ed, #1d6fe3);
-            border: 0;
-            box-shadow: 0 10px 18px rgba(47, 128, 237, 0.18);
-        }
-        .btn-primary:hover {
-            background: linear-gradient(135deg, #1d6fe3, #1558c9);
-        }
+
+        /* Forms */
         .form-control, .form-select {
             border-radius: 12px;
-            border-color: #d9e1ec;
-            box-shadow: none !important;
+            border-color: var(--hhx-border);
+            padding: 10px 14px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
-        .badge {
-            border-radius: 999px;
-            font-weight: 700;
+        .form-control:focus, .form-select:focus {
+            border-color: var(--hhx-pink);
+            box-shadow: 0 0 0 3px rgba(214, 51, 132, 0.12);
         }
+        .form-label { font-weight: 700; color: var(--hhx-text); }
+
+        /* Buttons */
+        .btn { border-radius: 12px; font-weight: 700; padding: 9px 18px; }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--hhx-pink), var(--hhx-pink-2));
+            border: 0;
+            box-shadow: 0 8px 18px rgba(214, 51, 132, 0.25);
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #b02a6c, #d63384);
+            transform: translateY(-1px);
+            box-shadow: 0 12px 22px rgba(214, 51, 132, 0.35);
+        }
+        .btn-success {
+            background: linear-gradient(135deg, var(--hhx-green), var(--hhx-green-2));
+            border: 0;
+            box-shadow: 0 8px 18px rgba(25, 135, 84, 0.22);
+        }
+        .btn-success:hover {
+            background: linear-gradient(135deg, #14653f, #198754);
+            transform: translateY(-1px);
+        }
+        .btn-outline-primary {
+            border: 1.5px solid var(--hhx-pink);
+            color: var(--hhx-pink);
+        }
+        .btn-outline-primary:hover {
+            background: var(--hhx-pink);
+            border-color: var(--hhx-pink);
+            color: #fff;
+        }
+        .btn-outline-success {
+            border: 1.5px solid var(--hhx-green);
+            color: var(--hhx-green);
+        }
+        .btn-outline-success:hover {
+            background: var(--hhx-green);
+            border-color: var(--hhx-green);
+            color: #fff;
+        }
+
+        .badge { border-radius: 999px; font-weight: 700; padding: 5px 10px; }
+
+        /* Flash messages */
         .flash-wrap {
-            position: fixed;
-            top: 88px;
-            left: 24px;
+            position: fixed; top: 88px; right: 24px;
             z-index: 1090;
-            width: min(420px, calc(100vw - 48px));
+            width: min(380px, calc(100vw - 48px));
             pointer-events: none;
         }
         .flash-wrap .alert {
-            border: 0;
-            border-radius: 16px;
-            box-shadow: 0 16px 30px rgba(15, 23, 42, 0.12);
+            border: 0; border-radius: 14px;
+            box-shadow: 0 16px 36px rgba(15, 23, 42, 0.14);
             pointer-events: auto;
+            animation: hhxFlashIn 0.3s ease;
         }
-        .content-card {
-            background: rgba(255,255,255,0.78);
-            backdrop-filter: blur(14px);
-            border: 1px solid rgba(230,235,242,0.72);
-            border-radius: 20px;
+        @keyframes hhxFlashIn {
+            from { opacity: 0; transform: translateY(-12px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        .admin-form-shell {
-            max-width: 1120px;
-            margin: 0 auto;
-        }
-        .admin-form-card {
-            border-radius: 24px;
-            overflow: hidden;
-        }
-        .admin-form-hero {
-            background: linear-gradient(135deg, #eff7ff 0%, #dfefff 100%);
-            border-bottom: 1px solid rgba(215, 230, 245, 0.95);
-        }
-        .admin-form-icon {
-            width: 56px;
-            height: 56px;
-            border-radius: 18px;
-            display: grid;
-            place-items: center;
-            background: linear-gradient(135deg, #4a8df7 0%, #3577e8 100%);
-            color: #fff;
-            box-shadow: 0 12px 24px rgba(74, 141, 247, 0.22);
-        }
-        .admin-form-subtitle {
-            color: var(--admin-muted);
-            margin-bottom: 0;
-        }
+
+        /* Utilities */
         .admin-section-title {
-            font-size: 0.85rem;
+            font-size: 0.78rem;
             text-transform: uppercase;
             letter-spacing: 0.08em;
-            color: #5c7ea8;
+            color: var(--hhx-muted);
             font-weight: 800;
             margin-bottom: 0.75rem;
         }
-        .admin-form-panel {
-            background: #fff;
-            border: 1px solid var(--admin-border);
-            border-radius: 20px;
-            padding: 22px;
-            box-shadow: 0 10px 22px rgba(16, 35, 61, 0.04);
-        }
-        .form-label {
-            color: #24496f;
-            font-weight: 700;
-        }
-        .form-text {
-            color: var(--admin-muted);
-        }
-        .submenu {
-            padding-bottom: 4px;
-        }
-        .navbar-user-btn {
-            border: 1px solid #dbe3ef;
-            background: #fff;
-        }
-        .table-light {
-            --bs-table-bg: transparent;
-        }
-        @media (max-width: 992px) {
-            .sidebar {
-                width: 240px;
+
+        /* Responsive */
+        @media (max-width: 991.98px) {
+            .admin-sidebar {
+                position: fixed; left: -280px;
+                width: 264px;
+                transition: left 0.3s ease;
+                z-index: 1050;
             }
-            .admin-content {
-                padding: 16px;
-            }
+            .admin-sidebar.show { left: 0; }
+            .topbar-toggle { display: grid; }
+            .admin-content { padding: 18px; }
+            .topbar-search { display: none; }
         }
+
+        .admin-overlay {
+            display: none;
+            position: fixed; inset: 0;
+            background: rgba(15, 23, 42, 0.5);
+            z-index: 1040;
+        }
+        .admin-overlay.show { display: block; }
     </style>
+    @yield('head')
 </head>
 <body>
-    <div class="admin-shell">
-        <!-- Sidebar -->
-        <div class="sidebar p-3">
-            <div class="text-center mb-4 pt-2">
-                <div class="brand-mark mx-auto mb-3">
-                    <i class="fas fa-spa" style="position: relative; z-index: 1; color: #4a8df7; font-size: 1.45rem;"></i>
-                </div>
-                <h4 class="fw-bold brand-name mb-1">HƯƠNG HOA XINH</h4>
-                <div class="sidebar-title">Admin Panel</div>
-                <div class="brand-subtitle"><i class="fas fa-wand-magic-sparkles"></i> Floral commerce</div>
-            </div>
-            
-            <ul class="nav flex-column">
-                <li><a href="{{ route('admin.dashboard') }}" class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}"><i class="fas fa-tachometer-alt me-2"></i> Dashboard</a></li>
-                <li class="sidebar-group">
-                    <a href="#productMenu" class="nav-link {{ request()->routeIs('admin.products.*') || request()->routeIs('admin.categories.*') ? 'active' : '' }}" data-bs-toggle="collapse" role="button" aria-expanded="{{ request()->routeIs('admin.products.*') || request()->routeIs('admin.categories.*') ? 'true' : 'false' }}" aria-controls="productMenu">
-                        <i class="fas fa-box me-2"></i> Quản lý Sản phẩm
-                    </a>
-                    <div class="collapse submenu {{ request()->routeIs('admin.products.*') || request()->routeIs('admin.categories.*') ? 'show' : '' }}" id="productMenu">
-                        <a href="{{ route('admin.products.index') }}" class="nav-link {{ request()->routeIs('admin.products.*') ? 'active' : '' }}">
-                            <i class="fas fa-list-ul me-2"></i> Danh sách sản phẩm
-                        </a>
-                        <a href="{{ route('admin.categories.index') }}" class="nav-link {{ request()->routeIs('admin.categories.*') ? 'active' : '' }}">
-                            <i class="fas fa-tags me-2"></i> Danh mục sản phẩm
-                        </a>
-                    </div>
-                </li>
-                <li><a href="{{ route('admin.orders.index') }}" class="nav-link {{ request()->routeIs('admin.orders.*') ? 'active' : '' }}"><i class="fas fa-shopping-bag me-2"></i> Quản lý Đơn hàng</a></li>
-                <li><a href="{{ route('admin.contact-messages.index') }}" class="nav-link {{ request()->routeIs('admin.contact-messages.*') ? 'active' : '' }}"><i class="fas fa-inbox me-2"></i> Tin nhắn liên hệ</a></li>
-                <li><a href="{{ route('admin.reviews.index') }}" class="nav-link {{ request()->routeIs('admin.reviews.*') ? 'active' : '' }}"><i class="fas fa-star-half-alt me-2"></i> Đánh giá</a></li>
-                <li><a href="{{ route('admin.vouchers.index') }}" class="nav-link {{ request()->routeIs('admin.vouchers.*') ? 'active' : '' }}"><i class="fas fa-ticket-alt me-2"></i> Mã giảm giá</a></li>
-                <li class="account-group">
-                    <a href="#accountMenu" class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}" data-bs-toggle="collapse" role="button" aria-expanded="{{ request()->routeIs('admin.users.*') ? 'true' : 'false' }}" aria-controls="accountMenu">
-                        <i class="fas fa-users-cog me-2"></i> Quản lý Tài khoản
-                    </a>
-                    <div class="collapse submenu {{ request()->routeIs('admin.users.*') ? 'show' : '' }}" id="accountMenu">
-                        <a href="{{ route('admin.users.admins') }}" class="nav-link {{ request()->routeIs('admin.users.admins') ? 'active' : '' }}">
-                            <i class="fas fa-user-shield me-2"></i> Admin
-                        </a>
-                        <a href="{{ route('admin.users.index') }}" class="nav-link {{ request()->routeIs('admin.users.index') || request()->routeIs('admin.users.show') ? 'active' : '' }}">
-                            <i class="fas fa-user me-2"></i> Khách hàng
-                        </a>
-                    </div>
-                </li>
-                <li><a href="{{ route('admin.revenue.index') }}" class="nav-link {{ request()->routeIs('admin.revenue.*') ? 'active' : '' }}"><i class="fas fa-chart-bar me-2"></i> Thống kê Doanh thu</a></li>
-                <li><a href="{{ route('admin.settings.edit') }}" class="nav-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}"><i class="fas fa-cog me-2"></i> Cài đặt Website</a></li>
-            </ul>
-        </div>
+    @php
+        $admin = Auth::guard('admin')->user();
+        $adminInitial = strtoupper(mb_substr($admin->name ?? 'A', 0, 1));
+    @endphp
 
-        <!-- Main Content -->
-        <div class="flex-grow-1">
-            <!-- Topbar -->
-            <nav class="navbar navbar-light navbar-admin px-4 py-3">
-                <div class="container-fluid">
-                    <div>
-                        <div class="text-muted small mb-1">Trang quản trị</div>
-                        <h5 class="mb-0 page-title">@yield('title')</h5>
-                    </div>
-                    
-                    <div class="d-flex align-items-center gap-2 gap-lg-3 flex-wrap justify-content-end">
-                        <a href="{{ route('home') }}" class="btn btn-outline-primary btn-sm px-3">
-                            <i class="fas fa-store me-1"></i> Trang bán hàng
-                        </a>
-                        <span class="badge bg-success px-3 py-2">Online</span>
-                        <div class="dropdown">
-                            <button class="btn navbar-user-btn dropdown-toggle px-3" data-bs-toggle="dropdown">
-                                <i class="fas fa-user-circle"></i> {{ Auth::guard('admin')->user()->name ?? 'Admin' }}
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="{{ route('admin.profile.edit') }}">Thông tin cá nhân</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <a class="dropdown-item text-danger" href="#" 
-                                       onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                                        Đăng xuất
-                                    </a>
-                                </li>
-                            </ul>
+    <div class="admin-shell">
+        <!-- ============ SIDEBAR ============ -->
+        <aside class="admin-sidebar" id="adminSidebar">
+            <div class="sidebar-brand">
+                <div class="sidebar-brand-icon">🌸</div>
+                <div>
+                    <div class="sidebar-brand-name">Hương Hoa Xinh</div>
+                    <div class="sidebar-brand-tag">Admin Panel</div>
+                </div>
+            </div>
+
+            <div class="sidebar-section-label">Tổng quan</div>
+            <ul class="sidebar-nav">
+                <li>
+                    <a href="{{ route('admin.dashboard') }}" class="sidebar-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+                        <i class="fas fa-grip"></i> Dashboard
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('admin.revenue.index') }}" class="sidebar-link {{ request()->routeIs('admin.revenue.*') ? 'active' : '' }}">
+                        <i class="fas fa-chart-column"></i> Doanh thu
+                    </a>
+                </li>
+
+                <li><div class="sidebar-section-label" style="padding-left: 6px;">Bán hàng</div></li>
+                <li>
+                    <a href="{{ route('admin.orders.index') }}" class="sidebar-link {{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
+                        <i class="fas fa-bag-shopping"></i> Đơn hàng
+                        @if($pendingOrd > 0)<span class="sidebar-badge">{{ $pendingOrd }}</span>@endif
+                    </a>
+                </li>
+                <li>
+                    <a href="#smProducts" class="sidebar-link {{ request()->routeIs('admin.products.*') || request()->routeIs('admin.categories.*') ? 'active' : '' }}" data-bs-toggle="collapse" role="button"
+                       aria-expanded="{{ request()->routeIs('admin.products.*') || request()->routeIs('admin.categories.*') ? 'true' : 'false' }}">
+                        <i class="fas fa-box"></i> Sản phẩm
+                        <i class="fas fa-chevron-right arrow"></i>
+                    </a>
+                    <div class="collapse {{ request()->routeIs('admin.products.*') || request()->routeIs('admin.categories.*') ? 'show' : '' }}" id="smProducts">
+                        <div class="sidebar-submenu">
+                            <a href="{{ route('admin.products.index') }}" class="sidebar-link {{ request()->routeIs('admin.products.*') ? 'active' : '' }}">
+                                <i class="fas fa-circle" style="font-size: 6px;"></i> Danh sách sản phẩm
+                                @if($lowStock > 0)<span class="sidebar-badge" title="{{ $lowStock }} sản phẩm sắp hết">{{ $lowStock }}</span>@endif
+                            </a>
+                            <a href="{{ route('admin.categories.index') }}" class="sidebar-link {{ request()->routeIs('admin.categories.*') ? 'active' : '' }}">
+                                <i class="fas fa-circle" style="font-size: 6px;"></i> Danh mục
+                            </a>
                         </div>
                     </div>
-                </div>
-            </nav>
+                </li>
+                <li>
+                    <a href="{{ route('admin.vouchers.index') }}" class="sidebar-link {{ request()->routeIs('admin.vouchers.*') ? 'active' : '' }}">
+                        <i class="fas fa-ticket"></i> Mã giảm giá
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('admin.reviews.index') }}" class="sidebar-link {{ request()->routeIs('admin.reviews.*') ? 'active' : '' }}">
+                        <i class="fas fa-star"></i> Đánh giá
+                    </a>
+                </li>
 
-            <!-- Content -->
+                <li><div class="sidebar-section-label" style="padding-left: 6px;">Quan hệ</div></li>
+                <li>
+                    <a href="{{ route('admin.contact-messages.index') }}" class="sidebar-link {{ request()->routeIs('admin.contact-messages.*') ? 'active' : '' }}">
+                        <i class="fas fa-envelope"></i> Tin nhắn liên hệ
+                        @if($unreadMsg > 0)<span class="sidebar-badge">{{ $unreadMsg }}</span>@endif
+                    </a>
+                </li>
+                <li>
+                    <a href="#smUsers" class="sidebar-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}" data-bs-toggle="collapse" role="button"
+                       aria-expanded="{{ request()->routeIs('admin.users.*') ? 'true' : 'false' }}">
+                        <i class="fas fa-users"></i> Tài khoản
+                        <i class="fas fa-chevron-right arrow"></i>
+                    </a>
+                    <div class="collapse {{ request()->routeIs('admin.users.*') ? 'show' : '' }}" id="smUsers">
+                        <div class="sidebar-submenu">
+                            <a href="{{ route('admin.users.index') }}" class="sidebar-link {{ request()->routeIs('admin.users.index') || request()->routeIs('admin.users.show') ? 'active' : '' }}">
+                                <i class="fas fa-circle" style="font-size: 6px;"></i> Khách hàng
+                            </a>
+                            <a href="{{ route('admin.users.admins') }}" class="sidebar-link {{ request()->routeIs('admin.users.admins') ? 'active' : '' }}">
+                                <i class="fas fa-circle" style="font-size: 6px;"></i> Admin
+                            </a>
+                        </div>
+                    </div>
+                </li>
+
+                <li><div class="sidebar-section-label" style="padding-left: 6px;">Hệ thống</div></li>
+                <li>
+                    <a href="{{ route('admin.settings.edit') }}" class="sidebar-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
+                        <i class="fas fa-gear"></i> Cài đặt website
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('admin.profile.edit') }}" class="sidebar-link {{ request()->routeIs('admin.profile.*') ? 'active' : '' }}">
+                        <i class="fas fa-user-gear"></i> Hồ sơ admin
+                    </a>
+                </li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <div class="d-flex align-items-center justify-content-between">
+                    <span><i class="fas fa-circle text-success me-1" style="font-size: 8px;"></i> Hệ thống ổn định</span>
+                    <a href="{{ route('home') }}" target="_blank" title="Xem trang bán hàng"><i class="fas fa-up-right-from-square"></i></a>
+                </div>
+                <div class="mt-1" style="font-size: 0.7rem;">v1.0 · {{ now()->format('Y') }}</div>
+            </div>
+        </aside>
+        <div class="admin-overlay" id="adminOverlay"></div>
+
+        <!-- ============ MAIN ============ -->
+        <main class="admin-main">
+            <header class="admin-topbar">
+                <div class="topbar-left">
+                    <button class="topbar-toggle" id="sidebarToggle" type="button" aria-label="Menu"><i class="fas fa-bars"></i></button>
+                    <div class="topbar-title-wrap">
+                        <div class="topbar-eyebrow">Trang quản trị</div>
+                        <h1 class="topbar-title">@yield('title')</h1>
+                    </div>
+                </div>
+
+                <div class="topbar-search d-none d-md-block">
+                    <i class="fas fa-magnifying-glass"></i>
+                    <input type="search" placeholder="Tìm sản phẩm, đơn hàng...">
+                </div>
+
+                <div class="topbar-actions">
+                    <a href="{{ route('home') }}" target="_blank" class="topbar-btn d-none d-sm-grid" title="Xem trang bán hàng"><i class="fas fa-store"></i></a>
+                    <a href="{{ route('admin.contact-messages.index') }}" class="topbar-btn" title="Tin nhắn">
+                        <i class="fas fa-envelope"></i>
+                        @if($unreadMsg > 0)<span class="topbar-btn-count">{{ $unreadMsg > 99 ? '99+' : $unreadMsg }}</span>@endif
+                    </a>
+                    <a href="{{ route('admin.orders.index') }}?status=pending" class="topbar-btn" title="Đơn chờ xử lý">
+                        <i class="fas fa-bell"></i>
+                        @if($pendingOrd > 0)<span class="topbar-btn-dot"></span>@endif
+                    </a>
+
+                    <div class="dropdown">
+                        <div class="topbar-user" data-bs-toggle="dropdown" role="button">
+                            <div class="topbar-user-avatar">{{ $adminInitial }}</div>
+                            <div class="d-none d-md-block">
+                                <div class="topbar-user-name">{{ $admin->name ?? 'Admin' }}</div>
+                                <div class="topbar-user-role">Quản trị viên</div>
+                            </div>
+                        </div>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="border: 1px solid var(--hhx-border); border-radius: 14px; padding: 8px;">
+                            <li><h6 class="dropdown-header" style="color: var(--hhx-muted); font-size: 0.75rem;">Đăng nhập với</h6></li>
+                            <li><span class="dropdown-item-text small fw-bold">{{ $admin->email ?? '' }}</span></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item rounded" href="{{ route('admin.profile.edit') }}"><i class="fas fa-user-gear me-2"></i>Hồ sơ cá nhân</a></li>
+                            <li><a class="dropdown-item rounded" href="{{ route('admin.settings.edit') }}"><i class="fas fa-gear me-2"></i>Cài đặt</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item rounded text-danger" href="#"
+                                   onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                    <i class="fas fa-arrow-right-from-bracket me-2"></i>Đăng xuất
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </header>
+
             <div class="admin-content">
                 <div class="flash-wrap">
                     @if(session('success'))
-                        <div class="alert alert-success alert-dismissible fade show mb-3" role="alert">
-                            {{ session('success') }}
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
                             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         </div>
                     @endif
-
                     @if(session('error'))
-                        <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
-                            {{ session('error') }}
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-circle-exclamation me-2"></i>{{ session('error') }}
                             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         </div>
                     @endif
@@ -423,13 +707,21 @@
 
                 @yield('content')
             </div>
-        </div>
+        </main>
     </div>
 
-    <form id="logout-form" action="{{ route('admin.logout') }}" method="POST" style="display:none;">
-        @csrf
-    </form>
+    <form id="logout-form" action="{{ route('admin.logout') }}" method="POST" style="display:none;">@csrf</form>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        (function () {
+            const sb = document.getElementById('adminSidebar');
+            const ov = document.getElementById('adminOverlay');
+            const tb = document.getElementById('sidebarToggle');
+            if (tb) tb.addEventListener('click', () => { sb.classList.toggle('show'); ov.classList.toggle('show'); });
+            if (ov) ov.addEventListener('click', () => { sb.classList.remove('show'); ov.classList.remove('show'); });
+        })();
+    </script>
+    @yield('scripts')
 </body>
 </html>

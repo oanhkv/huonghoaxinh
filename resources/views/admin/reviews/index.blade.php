@@ -6,8 +6,8 @@
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h3 class="fw-bold mb-0">Quản lý Đánh giá</h3>
-            <small class="text-muted">Xem và xóa các comment không phù hợp</small>
+            {{-- <h3 class="fw-bold mb-0">Quản lý Đánh giá</h3>
+            <small class="text-muted">Xem và xóa các comment không phù hợp</small> --}}
         </div>
         <span class="badge bg-primary px-3 py-2 fs-6">Tổng số: {{ $reviews->total() }} đánh giá</span>
     </div>

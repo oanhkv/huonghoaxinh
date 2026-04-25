@@ -4,9 +4,9 @@
 
 @section('content')
 <div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    {{-- <div class="d-flex justify-content-between align-items-center mb-4">
         <h3 class="fw-bold">Quản lý Đơn hàng</h3>
-    </div>
+    </div> --}}
 
     <!-- Tìm kiếm và lọc -->
     <div class="card shadow mb-4">

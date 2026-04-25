@@ -5,7 +5,7 @@
 @section('content')
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="fw-bold">Quản lý Sản phẩm</h3>
+        {{-- <h3 class="fw-bold">Quản lý Sản phẩm</h3> --}}
         <div class="d-flex align-items-center gap-2 flex-wrap">
             <a href="{{ route('admin.products.export') }}" class="btn btn-outline-success">
                 <i class="fas fa-file-excel"></i> Xuất Excel
