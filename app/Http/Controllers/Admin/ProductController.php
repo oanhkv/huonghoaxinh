@@ -64,7 +64,7 @@ class ProductController extends Controller
 
         $product = new Product;
         $product->name = $request->name;
-        $product->slug = Str::slug($request->name);
+        $product->slug = $this->generateUniqueSlug((string) $request->name);
         $product->description = $request->description;
         $product->price = $request->price;
         $product->stock = $request->stock;
@@ -112,7 +112,7 @@ class ProductController extends Controller
         ]);
 
         $product->name = $request->name;
-        $product->slug = Str::slug($request->name);
+        $product->slug = $this->generateUniqueSlug((string) $request->name, $product->id);
         $product->description = $request->description;
         $product->price = $request->price;
         $product->stock = $request->stock;
@@ -196,5 +196,28 @@ class ProductController extends Controller
         }
 
         return $imageName;
+    }
+
+    private function generateUniqueSlug(string $name, ?int $ignoreId = null): string
+    {
+        $base = Str::slug($name);
+        if ($base === '') {
+            $base = 'product';
+        }
+
+        $slug = $base;
+        $i = 2;
+
+        while (
+            Product::query()
+                ->when($ignoreId, fn ($q) => $q->where('id', '!=', $ignoreId))
+                ->where('slug', $slug)
+                ->exists()
+        ) {
+            $slug = $base.'-'.$i;
+            $i++;
+        }
+
+        return $slug;
     }
 }

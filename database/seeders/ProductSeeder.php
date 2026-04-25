@@ -16,6 +16,25 @@ class ProductSeeder extends Seeder
             return;
         }
 
+        // Mỗi danh mục seed tối đa 10 sản phẩm => tổng ~50 (với 5 danh mục).
+        // Khi chạy lại seeder, sẽ dọn bớt các bản seed dư (mốc 11-20) để DB không phình lên.
+        $perCategory = 10;
+        $previousPerCategory = 20;
+
+        $imagePool = [
+            // Picsum: ổn định theo seed, giúp mỗi sản phẩm khác ảnh (cần internet).
+            'https://picsum.photos/seed/hoa-1/360/450',
+            'https://picsum.photos/seed/hoa-2/360/450',
+            'https://picsum.photos/seed/hoa-3/360/450',
+            'https://picsum.photos/seed/hoa-4/360/450',
+            'https://picsum.photos/seed/hoa-5/360/450',
+            'https://picsum.photos/seed/hoa-6/360/450',
+            'https://picsum.photos/seed/hoa-7/360/450',
+            'https://picsum.photos/seed/hoa-8/360/450',
+            'https://picsum.photos/seed/hoa-9/360/450',
+            'https://picsum.photos/seed/hoa-10/360/450',
+        ];
+
         $productKeywords = [
             'Bó hoa premium',
             'Hộp hoa nghệ thuật',
@@ -62,11 +81,19 @@ class ProductSeeder extends Seeder
         ];
 
         foreach ($categories as $category) {
-            for ($i = 1; $i <= 20; $i++) {
+            // Dọn các bản seed dư nếu trước đó seed 20/danh mục.
+            for ($i = $perCategory + 1; $i <= $previousPerCategory; $i++) {
+                $keyword = $productKeywords[($i - 1) % count($productKeywords)];
+                $slug = Str::slug($category->slug.'-'.$keyword.'-'.$i);
+                Product::query()->where('slug', $slug)->delete();
+            }
+
+            for ($i = 1; $i <= $perCategory; $i++) {
                 $keyword = $productKeywords[($i - 1) % count($productKeywords)];
                 $name = "{$keyword} {$category->name} #{$i}";
                 $slug = Str::slug($category->slug.'-'.$keyword.'-'.$i);
                 $seed = urlencode($category->slug.'-'.$i);
+                $imageUrl = $imagePool[($i - 1) % count($imagePool)].'?v='.$seed;
 
                 Product::updateOrCreate(
                     ['slug' => $slug],
@@ -79,11 +106,23 @@ class ProductSeeder extends Seeder
                         'is_featured' => $i <= 5,
                         'is_active' => true,
                         // Ảnh URL để hiển thị ngay ở trang user/admin
-                        'image' => "https://tramhoa.com/wp-content/uploads/2019/11/Hoa-Hop-Go-TH-H011-Lang-Hoa-Baby-Hong-360x450.webp",
+                        'image' => $imageUrl,
                         'sizes' => $sizePresets[($i - 1) % count($sizePresets)],
                     ]
                 );
             }
         }
+
+        // Đảm bảo tổng sản phẩm không vượt quá tổng seed mong muốn.
+        // Giữ lại các sản phẩm mới nhất (theo id) để admin chỉ còn đúng 50.
+        $targetTotal = $categories->count() * $perCategory;
+        $idsToKeep = Product::query()
+            ->orderByDesc('id')
+            ->limit($targetTotal)
+            ->pluck('id');
+
+        Product::query()
+            ->whereNotIn('id', $idsToKeep)
+            ->delete();
     }
 }

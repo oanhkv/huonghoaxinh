@@ -59,6 +59,8 @@
             -webkit-backdrop-filter: blur(14px);
             border-bottom: 1px solid rgba(15, 23, 42, 0.06);
             box-shadow: 0 8px 30px rgba(15, 23, 42, 0.06);
+            position: relative;
+            z-index: 10;
         }
 
         .site-brand {
@@ -85,6 +87,12 @@
         .site-nav-wrap {
             background: rgba(255,255,255,0.55);
             border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+            position: relative;
+            z-index: 5;
+        }
+
+        header.sticky-top {
+            overflow: visible;
         }
 
         .navbar-nav .dropdown-menu {
@@ -92,6 +100,11 @@
             border-radius: var(--hh-radius);
             box-shadow: var(--hh-shadow);
             padding: 0.5rem;
+            z-index: 2000;
+        }
+
+        .site-header-main .dropdown-menu {
+            z-index: 2000;
         }
 
         .site-nav .nav-link {

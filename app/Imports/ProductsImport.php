@@ -22,6 +22,7 @@ class ProductsImport implements ToCollection, WithHeadingRow
 
             $name = trim((string) ($row['name'] ?? ''));
             $categoryName = trim((string) ($row['category_name'] ?? ''));
+            $imageRaw = trim((string) ($row['image'] ?? ($row['image_name'] ?? '')));
 
             if ($name === '') {
                 $this->errors[] = "Dong {$line}: thieu ten san pham.";
@@ -59,6 +60,13 @@ class ProductsImport implements ToCollection, WithHeadingRow
             $product->category_id = $category->id;
             $product->is_featured = $this->toBool($row['is_featured'] ?? 0);
             $product->is_active = $this->toBool($row['is_active'] ?? 1);
+
+            // Import ảnh nếu có (hỗ trợ: URL, storage/..., img/..., products/..., hoặc chỉ tên file).
+            // Nếu để trống thì giữ nguyên ảnh hiện có (không overwrite).
+            if ($imageRaw !== '') {
+                $product->image = $this->normalizeImageName($imageRaw);
+            }
+
             $product->save();
 
             $this->importedCount++;
@@ -84,5 +92,24 @@ class ProductsImport implements ToCollection, WithHeadingRow
         $normalized = Str::lower(trim((string) $value));
 
         return in_array($normalized, ['1', 'true', 'yes', 'co', 'dang ban', 'noi bat'], true);
+    }
+
+    private function normalizeImageName(string $imageName): string
+    {
+        $imageName = trim(str_replace('\\', '/', $imageName));
+        if ($imageName === '') {
+            return $imageName;
+        }
+
+        $lower = Str::lower($imageName);
+        if (str_starts_with($lower, 'http://') || str_starts_with($lower, 'https://')) {
+            return $imageName;
+        }
+
+        if (str_starts_with($imageName, '/')) {
+            return ltrim($imageName, '/');
+        }
+
+        return $imageName;
     }
 }
