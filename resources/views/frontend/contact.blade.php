@@ -93,7 +93,7 @@
                                 </div>
                                 <div>
                                     <h6 class="fw-bold mb-1 text-white">Hotline</h6>
-                                    <p class="mb-0 text-white-75">{{ $siteSettings['hotline'] ?? '0859 773 086' }}</p>
+                                    <p class="mb-0 text-white-75">{{ $siteSettings['hotline'] ?? '0925 939 255' }}</p>
                                 </div>
                             </div>
                             <p class="text-white-75 mb-0">Luôn sẵn sàng hỗ trợ bạn 24/7.</p>
@@ -106,7 +106,7 @@
                                 </div>
                                 <div>
                                     <h6 class="fw-bold mb-1 text-white">Địa chỉ</h6>
-                                    <p class="mb-0 text-white-75">{{ $siteSettings['address'] ?? 'Quận Gò Vấp, TP.HCM' }}</p>
+                                    <p class="mb-0 text-white-75">{{ $siteSettings['address'] ?? 'Di Trạch, Huyện Hoài Đức, Hà Nội' }}</p>
                                 </div>
                             </div>
                             <p class="text-white-75 mb-0">Đến thăm cửa hàng hoặc nhận giao hoa tận nơi.</p>
@@ -119,7 +119,7 @@
                                 </div>
                                 <div>
                                     <h6 class="fw-bold mb-1 text-white">Email</h6>
-                                    <p class="mb-0 text-white-75">{{ $siteSettings['support_email'] ?? 'support@huonghoaxinh.vn' }}</p>
+                                    <p class="mb-0 text-white-75">{{ $siteSettings['support_email'] ?? 'huonghoaxinh@gmail.com' }}</p>
                                 </div>
                             </div>
                             <p class="text-white-75 mb-0">Nhận thông tin và phản hồi trong 1 ngày làm việc.</p>

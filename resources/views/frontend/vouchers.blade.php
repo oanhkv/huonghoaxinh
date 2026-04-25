@@ -201,47 +201,68 @@
 
 <script>
     function copyCode(code, element) {
-        // Copy to clipboard
-        navigator.clipboard.writeText(code).then(() => {
-            // Show feedback
-            const btn = element ? element : event.target.closest('button');
-            const originalHTML = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-check"></i>';
-            btn.classList.add('btn-outline-success');
-            btn.classList.remove('btn-success');
+        const ev = window.event;
+        const btn = element || (ev && ev.target ? ev.target.closest('button, .code-box') : null);
 
-            setTimeout(() => {
-                btn.innerHTML = originalHTML;
-                btn.classList.remove('btn-outline-success');
-                btn.classList.add('btn-success');
-            }, 2000);
+        const onSuccess = () => {
+            try {
+                if (btn) {
+                    const originalHTML = btn.innerHTML;
+                    btn.innerHTML = '<i class="fas fa-check"></i>';
+                    btn.classList.add('copied');
+                    setTimeout(() => {
+                        btn.innerHTML = originalHTML;
+                        btn.classList.remove('copied');
+                    }, 2000);
+                }
+            } catch (e) { /* no-op: chỉ là hiệu ứng UI */ }
+            showToast('Đã sao chép mã ' + code + '!', 'success');
+        };
 
-            // Optional: Show toast notification
-            showToast('Đã sao chép mã giảm giá!', 'success');
-        }).catch(err => {
-            console.error('Không thể sao chép:', err);
-            showToast('Lỗi khi sao chép mã!', 'error');
-        });
+        // Cách 1: Clipboard API (yêu cầu secure context — https hoặc localhost)
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(code).then(onSuccess).catch(() => fallbackCopy(code, onSuccess));
+            return;
+        }
+        // Cách 2: Fallback dùng textarea + execCommand
+        fallbackCopy(code, onSuccess);
     }
 
-    function showToast(message, type = 'info') {
-        // Create toast element
+    function fallbackCopy(text, onSuccess) {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0;';
+        document.body.appendChild(ta);
+        ta.focus(); ta.select();
+        try {
+            const ok = document.execCommand('copy');
+            document.body.removeChild(ta);
+            if (ok) onSuccess(); else showToast('Không thể sao chép. Hãy copy thủ công: ' + text, 'danger');
+        } catch (e) {
+            document.body.removeChild(ta);
+            showToast('Không thể sao chép. Hãy copy thủ công: ' + text, 'danger');
+        }
+    }
+
+    function showToast(message, type = 'success') {
         const toast = document.createElement('div');
-        toast.className = `alert alert-${type} position-fixed`;
-        toast.style.cssText = 'bottom: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        toast.className = `alert alert-${type} position-fixed shadow-sm border-0 rounded-3 fade show`;
+        toast.style.cssText = 'bottom: 20px; right: 20px; z-index: 9999; min-width: 280px; animation: hhxToastIn .25s ease;';
         toast.innerHTML = `
             <div class="d-flex align-items-center">
                 <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
                 <span>${message}</span>
             </div>
         `;
-
         document.body.appendChild(toast);
-
-        // Remove after 3 seconds
-        setTimeout(() => {
-            toast.remove();
-        }, 3000);
+        setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity .3s'; }, 2400);
+        setTimeout(() => toast.remove(), 2800);
+    }
+    // CSS keyframe inline cho toast slide-in
+    if (!document.getElementById('hhxToastStyle')) {
+        const s = document.createElement('style'); s.id = 'hhxToastStyle';
+        s.textContent = '@keyframes hhxToastIn{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}';
+        document.head.appendChild(s);
     }
 </script>
 @endsection

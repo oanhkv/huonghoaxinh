@@ -23,7 +23,7 @@
             </div>
             <div class="col-lg-5">
                 <div class="ratio ratio-4x3 rounded-4 overflow-hidden shadow" style="background: linear-gradient(145deg, rgba(25,135,84,0.15), rgba(233,30,140,0.12));">
-                    <img src="https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=900&auto=format&fit=crop&q=80"
+                    <img src="https://tramhoa.com/wp-content/uploads/2024/11/Bo-Hoa-Tuoi-TH-B012-Forever-Love-F-400x500.jpg"
                          class="object-fit-cover" alt="Hoa tươi Hương Hoa Xinh">
                 </div>
             </div>
@@ -77,7 +77,7 @@
         </div>
         <div class="col-lg-6 order-lg-1">
             <div class="rounded-4 overflow-hidden shadow-sm">
-                <img src="https://images.unsplash.com/photo-1455659817273-f968077798a5?w=900&auto=format&fit=crop&q=80"
+                <img src="https://tramhoa.com/wp-content/uploads/2019/09/Lang-Hoa-De-Ban-TH-H020-e1720662707697-400x500.webp"
                      class="img-fluid w-100" alt="Đội ngũ hoa Hương Hoa Xinh">
             </div>
         </div>

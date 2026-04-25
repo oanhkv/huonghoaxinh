@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
+use App\Models\BlogPost;
 use App\Models\Category;
 use App\Models\ContactMessage;
 use App\Models\Product;
@@ -30,6 +31,9 @@ class HomeController extends Controller
         if (Schema::hasTable('categories')) {
             $mainCategories = Category::whereNull('parent_id')
                 ->with('children')
+                ->withCount(['products' => function ($q) {
+                    $q->where('is_active', true);
+                }])
                 ->get();
         }
 
@@ -52,7 +56,17 @@ class HomeController extends Controller
                 ->get();
         }
 
-        return view('frontend.home', compact('featuredProducts', 'mainCategories', 'userWishlists', 'customerReviews'));
+        $blogPosts = collect();
+        if (Schema::hasTable('blog_posts')) {
+            $blogPosts = BlogPost::query()
+                ->where('is_active', true)
+                ->with('category')
+                ->orderByDesc('published_at')
+                ->take(8)
+                ->get();
+        }
+
+        return view('frontend.home', compact('featuredProducts', 'mainCategories', 'userWishlists', 'customerReviews', 'blogPosts'));
     }
 
     // Trang Giới thiệu về chúng tôi
