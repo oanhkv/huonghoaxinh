@@ -20,10 +20,14 @@ class Product extends Model
         'is_featured',
         'is_active',
         'sizes',
+        'colors',
+        'materials',
     ];
 
     protected $casts = [
         'sizes' => 'array',
+        'colors' => 'array',
+        'materials' => 'array',
     ];
 
     public function category()
