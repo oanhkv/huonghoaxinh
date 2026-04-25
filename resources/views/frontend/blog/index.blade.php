@@ -22,7 +22,7 @@
                 <div class="col-lg-6">
                     @if($featuredPost->image)
                         <div class="h-100" style="min-height: 280px;">
-                            <img src="{{ asset('storage/' . $featuredPost->image) }}" class="w-100 h-100 object-fit-cover" alt="{{ $featuredPost->title }}" style="min-height: 280px; object-fit: cover;">
+                            <img src="{{ $featuredPost->image_url }}" class="w-100 h-100 object-fit-cover" alt="{{ $featuredPost->title }}" style="min-height: 280px; object-fit: cover;">
                         </div>
                     @else
                         <div class="h-100 d-flex align-items-center justify-content-center bg-success bg-opacity-10" style="min-height: 280px;">
@@ -99,7 +99,7 @@
                         <article class="card h-100 shadow-sm border-0 overflow-hidden rounded-4 blog-card-hover">
                             @if($post->image)
                                 <div class="position-relative overflow-hidden" style="height: 200px;">
-                                    <img src="{{ asset('storage/' . $post->image) }}" class="w-100 h-100" style="object-fit: cover;" alt="{{ $post->title }}">
+                                    <img src="{{ $post->image_url }}" class="w-100 h-100" style="object-fit: cover;" alt="{{ $post->title }}">
                                     <div class="position-absolute top-0 end-0 m-2">
                                         @if($post->category)
                                             <span class="badge bg-dark bg-opacity-75 rounded-pill">{{ $post->category->name }}</span>

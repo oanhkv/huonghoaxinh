@@ -31,4 +31,33 @@ class BlogPost extends Model
     {
         return 'slug';
     }
+
+    public function getImageUrlAttribute(): ?string
+    {
+        $image = trim((string) $this->image);
+        if ($image === '') {
+            return null;
+        }
+
+        $image = str_replace('\\', '/', $image);
+        $lower = strtolower($image);
+
+        if (str_starts_with($lower, 'http://') || str_starts_with($lower, 'https://')) {
+            return $image;
+        }
+
+        if (str_starts_with($image, '/')) {
+            return asset(ltrim($image, '/'));
+        }
+
+        if (str_starts_with($lower, 'storage/') || str_starts_with($lower, 'img/')) {
+            return asset($image);
+        }
+
+        if (! str_contains($image, '/')) {
+            return asset('img/'.$image);
+        }
+
+        return asset('storage/'.$image);
+    }
 }

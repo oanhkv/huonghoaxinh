@@ -41,6 +41,26 @@ class BlogController extends Controller
 
     public function show(BlogPost $post)
     {
-        return view('frontend.blog.show', compact('post'));
+        $relatedPosts = BlogPost::query()
+            ->where('is_active', true)
+            ->where('id', '!=', $post->id)
+            ->when($post->blog_category_id, fn ($q) => $q->where('blog_category_id', $post->blog_category_id))
+            ->orderByDesc('published_at')
+            ->take(4)
+            ->get();
+
+        if ($relatedPosts->count() < 4) {
+            $needed = 4 - $relatedPosts->count();
+            $extras = BlogPost::query()
+                ->where('is_active', true)
+                ->where('id', '!=', $post->id)
+                ->whereNotIn('id', $relatedPosts->pluck('id'))
+                ->orderByDesc('published_at')
+                ->take($needed)
+                ->get();
+            $relatedPosts = $relatedPosts->concat($extras);
+        }
+
+        return view('frontend.blog.show', compact('post', 'relatedPosts'));
     }
 }
