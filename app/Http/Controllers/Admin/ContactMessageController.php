@@ -57,7 +57,7 @@ class ContactMessageController extends Controller
 
         $reply = ContactReply::create([
             'contact_message_id' => $contactMessage->id,
-            'admin_id' => Auth::id(),
+            'admin_id' => Auth::guard('admin')->id(),
             'subject' => $request->subject,
             'body' => $request->body,
             'to_email' => $contactMessage->email,

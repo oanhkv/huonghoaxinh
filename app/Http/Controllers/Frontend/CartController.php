@@ -145,12 +145,15 @@ class CartController extends Controller
         }
     }
 
-    // Cập nhật số lượng
+    // Cập nhật số lượng và/hoặc size
     public function update(Request $request, string $cart)
     {
         $request->validate([
             'quantity' => 'required|integer|min:1',
+            'variant' => 'nullable|string|max:255',
         ]);
+
+        $newVariant = $request->has('variant') ? trim((string) $request->variant) : null;
 
         if (Auth::check()) {
             $cartItem = Cart::where('id', $cart)
@@ -165,24 +168,76 @@ class CartController extends Controller
                 ], 403);
             }
 
+            $product = $cartItem->product;
+            $newPrice = $cartItem->price;
+
+            if ($newVariant !== null && $newVariant !== $cartItem->variant) {
+                $resolved = $this->resolvePriceForVariant($product, $newVariant);
+                if ($resolved === null) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Kích thước không hợp lệ.',
+                    ], 422);
+                }
+                $newPrice = $resolved;
+
+                // Nếu đã tồn tại row khác cùng product+variant+price → merge quantity
+                $duplicate = Cart::where('user_id', Auth::id())
+                    ->where('product_id', $cartItem->product_id)
+                    ->where('variant', $newVariant)
+                    ->where('price', $newPrice)
+                    ->where('id', '!=', $cartItem->id)
+                    ->first();
+
+                if ($duplicate) {
+                    $merged = $duplicate->quantity + (int) $request->quantity;
+                    if ($merged > $product->stock) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Số lượng vượt quá kho',
+                        ], 422);
+                    }
+                    $duplicate->update(['quantity' => $merged]);
+                    $cartItem->delete();
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Đã gộp với mục cùng kích thước',
+                        'merged_into' => $duplicate->id,
+                        'quantity' => $merged,
+                        'price' => (float) $newPrice,
+                        'variant' => $newVariant,
+                        'subtotal' => $merged * (float) $newPrice,
+                        'reload' => true,
+                    ]);
+                }
+            }
+
             $otherQuantity = Cart::where('user_id', Auth::id())
                 ->where('product_id', $cartItem->product_id)
                 ->where('id', '!=', $cartItem->id)
                 ->sum('quantity');
 
-            if ($otherQuantity + $request->quantity > $cartItem->product->stock) {
+            if ($otherQuantity + $request->quantity > $product->stock) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Số lượng vượt quá kho',
                 ], 422);
             }
 
-            $cartItem->update(['quantity' => $request->quantity]);
+            $update = ['quantity' => (int) $request->quantity];
+            if ($newVariant !== null) {
+                $update['variant'] = $newVariant;
+                $update['price'] = $newPrice;
+            }
+            $cartItem->update($update);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Cập nhật số lượng thành công',
-                'subtotal' => $cartItem->quantity * $cartItem->price,
+                'message' => 'Cập nhật thành công',
+                'quantity' => (int) $request->quantity,
+                'price' => (float) ($update['price'] ?? $cartItem->price),
+                'variant' => $update['variant'] ?? $cartItem->variant,
+                'subtotal' => (int) $request->quantity * (float) ($update['price'] ?? $cartItem->price),
             ]);
         }
 
@@ -224,14 +279,72 @@ class CartController extends Controller
             ], 422);
         }
 
+        $newPrice = (float) $cartItem['price'];
+        if ($newVariant !== null && $newVariant !== ($cartItem['variant'] ?? '')) {
+            $resolved = $this->resolvePriceForVariant($product, $newVariant);
+            if ($resolved === null) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Kích thước không hợp lệ.',
+                ], 422);
+            }
+            $newPrice = $resolved;
+
+            // Merge với guest cart row trùng
+            foreach ($guestCart as $idx => $other) {
+                if ($idx === $itemIndex) continue;
+                if ((int) ($other['product_id'] ?? 0) === (int) $cartItem['product_id']
+                    && (string) ($other['variant'] ?? '') === $newVariant
+                    && (float) ($other['price'] ?? 0) === (float) $newPrice) {
+                    $merged = (int) $other['quantity'] + (int) $request->quantity;
+                    if ($merged > $product->stock) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Số lượng vượt quá kho',
+                        ], 422);
+                    }
+                    $guestCart[$idx]['quantity'] = $merged;
+                    array_splice($guestCart, $itemIndex, 1);
+                    Session::put('guest_cart', array_values($guestCart));
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Đã gộp với mục cùng kích thước',
+                        'reload' => true,
+                    ]);
+                }
+            }
+
+            $guestCart[$itemIndex]['variant'] = $newVariant;
+            $guestCart[$itemIndex]['price'] = $newPrice;
+        }
+
         $guestCart[$itemIndex]['quantity'] = (int) $request->quantity;
         Session::put('guest_cart', $guestCart);
 
         return response()->json([
             'success' => true,
-            'message' => 'Cập nhật số lượng thành công',
-            'subtotal' => ((int) $request->quantity) * ((float) $cartItem['price']),
+            'message' => 'Cập nhật thành công',
+            'quantity' => (int) $request->quantity,
+            'price' => $newPrice,
+            'variant' => $guestCart[$itemIndex]['variant'] ?? '',
+            'subtotal' => ((int) $request->quantity) * $newPrice,
         ]);
+    }
+
+    private function resolvePriceForVariant(Product $product, string $variant): ?float
+    {
+        if ($variant === '' || $variant === 'Mặc định') {
+            return (float) $product->price;
+        }
+        $sizes = is_array($product->sizes) ? $product->sizes : [];
+        foreach ($sizes as $row) {
+            if (! is_array($row)) continue;
+            if ((string) ($row['size'] ?? '') === $variant) {
+                $delta = (float) ($row['price'] ?? 0);
+                return (float) $product->price + $delta;
+            }
+        }
+        return null;
     }
 
     // Xóa sản phẩm khỏi giỏ hàng
@@ -325,7 +438,7 @@ class CartController extends Controller
         $discount = 0;
         if ($voucher->type === 'fixed') {
             $discount = $voucher->value;
-        } elseif ($voucher->type === 'percentage') {
+        } elseif ($voucher->type === 'percent') {
             $discount = ($subtotal * $voucher->value) / 100;
         }
 

@@ -133,8 +133,17 @@
                                 </div>
 
                                 <div class="d-flex gap-2">
-                                    <a href="{{ route('shop') }}" class="btn btn-success flex-grow-1">
-                                        <i class="fas fa-shopping-cart me-2"></i>Sử dụng mã
+                                    @auth
+                                        <a href="{{ route('checkout.index', ['voucher' => $voucher->code]) }}" class="btn btn-success flex-grow-1">
+                                            <i class="fas fa-bolt me-2"></i>Dùng mã ngay
+                                        </a>
+                                    @else
+                                        <a href="{{ route('login') }}?intended={{ urlencode(route('checkout.index', ['voucher' => $voucher->code])) }}" class="btn btn-success flex-grow-1">
+                                            <i class="fas fa-bolt me-2"></i>Dùng mã ngay
+                                        </a>
+                                    @endauth
+                                    <a href="{{ route('shop') }}" class="btn btn-outline-success" title="Mua sắm thêm">
+                                        <i class="fas fa-shopping-cart"></i>
                                     </a>
                                 </div>
                             </div>

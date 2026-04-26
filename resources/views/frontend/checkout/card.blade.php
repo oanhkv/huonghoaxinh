@@ -75,11 +75,6 @@
                         </div>
                     </div>
 
-                    <div class="alert alert-warning border-0 small mb-4">
-                        <strong>Cấu hình cho đúng tài khoản nhận tiền:</strong> trong file <code>.env</code> đặt <code>VIETQR_BANK_ID</code> (6 số BIN đúng ngân hàng của STK),
-                        <code>VIETQR_ACCOUNT_NO</code>, <code>VIETQR_ACCOUNT_NAME</code>. Hoặc dùng SePay: <code>PAYMENT_QR_PROVIDER=sepay</code> kèm <code>SEPAY_BANK</code>, <code>SEPAY_ACCOUNT</code>.
-                    </div>
-
                     <div class="d-flex flex-wrap justify-content-center gap-2">
                         <form action="{{ route('checkout.card.confirm', $order) }}" method="POST" class="m-0">
                             @csrf

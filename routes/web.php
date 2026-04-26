@@ -72,6 +72,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/checkout', [PaymentController::class, 'checkout'])->name('checkout.index');
     Route::post('/checkout/buy-now', [PaymentController::class, 'initBuyNow'])->name('checkout.buy-now');
     Route::post('/checkout/apply-voucher', [PaymentController::class, 'applyVoucherPreview'])->name('checkout.apply-voucher');
+    Route::get('/checkout/available-vouchers', [PaymentController::class, 'availableVouchers'])->name('checkout.available-vouchers');
     Route::post('/checkout', [PaymentController::class, 'process'])->name('checkout.process');
     Route::get('/checkout/success', [PaymentController::class, 'success'])->name('checkout.success');
     Route::get('/checkout/card/{order}', [PaymentController::class, 'cardPayment'])->name('checkout.card');

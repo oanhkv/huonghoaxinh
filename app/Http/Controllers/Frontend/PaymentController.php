@@ -9,6 +9,7 @@ use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\Review;
 use App\Models\Voucher;
+use App\Models\VoucherUserUsage;
 use App\Services\OrderInventoryService;
 use App\Services\PaymentQrService;
 use App\Services\ShippingDistanceService;
@@ -87,10 +88,15 @@ class PaymentController extends Controller
         }
 
         $paymentMethod = old('payment_method', $pendingOrder && $pendingOrder->status === 'pending' ? 'card' : 'cod');
-        $shippingAddress = old('shipping_address', optional($pendingOrder)->shipping_address);
-        $phone = old('phone', optional($pendingOrder)->phone);
+        $user = Auth::user();
+        $profileAddress = trim((string) ($user->address ?? ''));
+        $profilePhone = trim((string) ($user->phone ?? ''));
+        $profileName = trim((string) ($user->name ?? ''));
+        $shippingAddress = old('shipping_address', optional($pendingOrder)->shipping_address ?: $profileAddress);
+        $phone = old('phone', optional($pendingOrder)->phone ?: $profilePhone);
         $note = old('note', optional($pendingOrder)->note);
         $voucherCode = old('voucher_code', '');
+        $hasProfileSuggestion = $profileAddress !== '' || $profilePhone !== '';
 
         $distanceKm = 0.0;
         $distanceGeocoded = true;
@@ -129,8 +135,90 @@ class PaymentController extends Controller
             'pendingOrder',
             'distanceKm',
             'distanceGeocoded',
-            'voucherCode'
+            'voucherCode',
+            'profileAddress',
+            'profilePhone',
+            'profileName',
+            'hasProfileSuggestion'
         ));
+    }
+
+    public function availableVouchers(Request $request)
+    {
+        $isBuyNow = $request->input('checkout_source') === 'buy_now';
+        $cartItems = $isBuyNow
+            ? $this->getBuyNowItemsFromSession()
+            : Cart::where('user_id', Auth::id())->with('product')->get();
+
+        $subtotal = (float) $cartItems->sum(fn ($item) => $item->quantity * $item->price);
+        $now = Carbon::now();
+
+        $usedVoucherIds = Auth::check()
+            ? VoucherUserUsage::where('user_id', Auth::id())->pluck('voucher_id')->all()
+            : [];
+
+        $vouchers = Voucher::where('is_active', true)
+            ->where(function ($q) use ($now) {
+                $q->whereNull('starts_at')->orWhere('starts_at', '<=', $now);
+            })
+            ->where(function ($q) use ($now) {
+                $q->whereNull('ends_at')->orWhere('ends_at', '>=', $now);
+            })
+            ->orderByRaw('CASE WHEN ends_at IS NULL THEN 1 ELSE 0 END, ends_at ASC')
+            ->get()
+            ->map(function (Voucher $v) use ($subtotal, $usedVoucherIds) {
+                $reasons = [];
+                $eligible = true;
+
+                if (in_array($v->id, $usedVoucherIds, true)) {
+                    $eligible = false;
+                    $reasons[] = 'Bạn đã sử dụng mã này';
+                }
+
+                if ($v->usage_limit !== null && $v->used_count >= $v->usage_limit) {
+                    $eligible = false;
+                    $reasons[] = 'Đã hết lượt sử dụng';
+                }
+
+                if ($v->min_order_amount !== null && $subtotal < (float) $v->min_order_amount) {
+                    $eligible = false;
+                    $diff = (float) $v->min_order_amount - $subtotal;
+                    $reasons[] = 'Cần mua thêm '.number_format($diff, 0, ',', '.').'₫';
+                }
+
+                $estimatedDiscount = 0.0;
+                if ($v->type === 'percent') {
+                    $estimatedDiscount = $subtotal * ((float) $v->value / 100);
+                } else {
+                    $estimatedDiscount = (float) $v->value;
+                }
+                if ($v->max_discount_amount !== null) {
+                    $estimatedDiscount = min($estimatedDiscount, (float) $v->max_discount_amount);
+                }
+                $estimatedDiscount = min($estimatedDiscount, $subtotal);
+
+                return [
+                    'code' => $v->code,
+                    'name' => $v->name,
+                    'type' => $v->type,
+                    'value' => (float) $v->value,
+                    'min_order_amount' => $v->min_order_amount !== null ? (float) $v->min_order_amount : null,
+                    'max_discount_amount' => $v->max_discount_amount !== null ? (float) $v->max_discount_amount : null,
+                    'usage_limit' => $v->usage_limit,
+                    'used_count' => (int) $v->used_count,
+                    'ends_at' => $v->ends_at?->format('d/m/Y'),
+                    'eligible' => $eligible,
+                    'reason' => implode(' · ', $reasons),
+                    'estimated_discount' => $eligible ? $estimatedDiscount : 0,
+                ];
+            })
+            ->values();
+
+        return response()->json([
+            'success' => true,
+            'subtotal' => $subtotal,
+            'vouchers' => $vouchers,
+        ]);
     }
 
     public function applyVoucherPreview(Request $request)
@@ -264,6 +352,11 @@ class PaymentController extends Controller
 
             if ($voucher) {
                 $voucher->increment('used_count');
+                VoucherUserUsage::create([
+                    'voucher_id' => $voucher->id,
+                    'user_id' => Auth::id(),
+                    'order_id' => $order->id,
+                ]);
             }
 
             if (! $isBuyNow) {
@@ -412,6 +505,7 @@ class PaymentController extends Controller
 
         DB::transaction(function () use ($order) {
             app(OrderInventoryService::class)->restoreForOrder($order);
+            $this->releaseVoucherForOrder($order);
             $order->update(['status' => 'cancelled']);
         });
 
@@ -443,8 +537,18 @@ class PaymentController extends Controller
         foreach ($expiredOrders as $order) {
             DB::transaction(function () use ($order) {
                 app(OrderInventoryService::class)->restoreForOrder($order);
+                $this->releaseVoucherForOrder($order);
                 $order->update(['status' => 'cancelled']);
             });
+        }
+    }
+
+    private function releaseVoucherForOrder(Order $order): void
+    {
+        $usages = VoucherUserUsage::where('order_id', $order->id)->get();
+        foreach ($usages as $usage) {
+            Voucher::where('id', $usage->voucher_id)->where('used_count', '>', 0)->decrement('used_count');
+            $usage->delete();
         }
     }
 
@@ -487,13 +591,19 @@ class PaymentController extends Controller
                 ]);
             }
 
+            if (Auth::check() && VoucherUserUsage::where('voucher_id', $voucher->id)->where('user_id', Auth::id())->exists()) {
+                throw ValidationException::withMessages([
+                    'voucher_code' => 'Bạn đã sử dụng mã giảm giá này rồi.',
+                ]);
+            }
+
             if ($voucher->min_order_amount !== null && $subtotal < $voucher->min_order_amount) {
                 throw ValidationException::withMessages([
                     'voucher_code' => 'Đơn hàng chưa đạt giá trị tối thiểu để áp dụng mã.',
                 ]);
             }
 
-            if ($voucher->type === 'percentage') {
+            if ($voucher->type === 'percent') {
                 $discount = $subtotal * ((float) $voucher->value / 100);
             } else {
                 $discount = (float) $voucher->value;

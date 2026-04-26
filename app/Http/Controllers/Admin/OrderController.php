@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\Voucher;
+use App\Models\VoucherUserUsage;
 use App\Services\OrderInventoryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -56,6 +58,11 @@ class OrderController extends Controller
         DB::transaction(function () use ($order, $newStatus) {
             if ($newStatus === 'cancelled' && $order->status !== 'cancelled') {
                 app(OrderInventoryService::class)->restoreForOrder($order);
+                $usages = VoucherUserUsage::where('order_id', $order->id)->get();
+                foreach ($usages as $usage) {
+                    Voucher::where('id', $usage->voucher_id)->where('used_count', '>', 0)->decrement('used_count');
+                    $usage->delete();
+                }
             }
             $order->update(['status' => $newStatus]);
         });
