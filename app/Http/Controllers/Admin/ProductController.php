@@ -46,8 +46,10 @@ class ProductController extends Controller
     public function create()
     {
         $categories = Category::all();
+        $colorOptions = Product::COLOR_OPTIONS;
+        $materialOptions = Product::MATERIAL_OPTIONS;
 
-        return view('admin.products.create', compact('categories'));
+        return view('admin.products.create', compact('categories', 'colorOptions', 'materialOptions'));
     }
 
     public function store(Request $request)
@@ -60,6 +62,10 @@ class ProductController extends Controller
             'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'image_name' => 'nullable|string|max:255',
             'sizes' => 'nullable|json',
+            'colors' => 'nullable|array',
+            'colors.*' => ['string', \Illuminate\Validation\Rule::in(array_keys(Product::COLOR_OPTIONS))],
+            'materials' => 'nullable|array',
+            'materials.*' => ['string', \Illuminate\Validation\Rule::in(Product::MATERIAL_OPTIONS)],
         ]);
 
         $product = new Product;
@@ -76,6 +82,9 @@ class ProductController extends Controller
         if ($request->filled('sizes')) {
             $product->sizes = json_decode($request->sizes, true);
         }
+
+        $product->colors = $this->sanitizeList((array) $request->input('colors', []), array_keys(Product::COLOR_OPTIONS));
+        $product->materials = $this->sanitizeList((array) $request->input('materials', []), Product::MATERIAL_OPTIONS);
 
         if ($request->hasFile('image')) {
             $image = $request->file('image');
@@ -95,8 +104,10 @@ class ProductController extends Controller
     public function edit(Product $product)
     {
         $categories = Category::all();
+        $colorOptions = Product::COLOR_OPTIONS;
+        $materialOptions = Product::MATERIAL_OPTIONS;
 
-        return view('admin.products.edit', compact('product', 'categories'));
+        return view('admin.products.edit', compact('product', 'categories', 'colorOptions', 'materialOptions'));
     }
 
     public function update(Request $request, Product $product)
@@ -109,6 +120,10 @@ class ProductController extends Controller
             'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'image_name' => 'nullable|string|max:255',
             'sizes' => 'nullable|json',
+            'colors' => 'nullable|array',
+            'colors.*' => ['string', \Illuminate\Validation\Rule::in(array_keys(Product::COLOR_OPTIONS))],
+            'materials' => 'nullable|array',
+            'materials.*' => ['string', \Illuminate\Validation\Rule::in(Product::MATERIAL_OPTIONS)],
         ]);
 
         $product->name = $request->name;
@@ -123,6 +138,9 @@ class ProductController extends Controller
         if ($request->filled('sizes')) {
             $product->sizes = json_decode($request->sizes, true);
         }
+
+        $product->colors = $this->sanitizeList((array) $request->input('colors', []), array_keys(Product::COLOR_OPTIONS));
+        $product->materials = $this->sanitizeList((array) $request->input('materials', []), Product::MATERIAL_OPTIONS);
 
         if ($request->hasFile('image')) {
             // Xóa ảnh cũ
@@ -196,6 +214,14 @@ class ProductController extends Controller
         }
 
         return $imageName;
+    }
+
+    private function sanitizeList(array $values, array $allowed): array
+    {
+        return array_values(array_unique(array_filter(
+            $values,
+            fn ($v) => is_string($v) && in_array($v, $allowed, true)
+        )));
     }
 
     private function generateUniqueSlug(string $name, ?int $ignoreId = null): string

@@ -77,6 +77,50 @@
                     <input type="hidden" name="sizes" id="sizesInput" value="{{ json_encode($product->sizes ?? []) }}">
                 </div>
 
+                <div class="admin-section-title">Màu sắc & Nguyên liệu</div>
+                <div class="admin-form-panel mb-4">
+                    @php
+                        $currentColors = (array) old('colors', $product->colors ?? []);
+                        $currentMaterials = (array) old('materials', $product->materials ?? []);
+                    @endphp
+                    <div class="row g-4">
+                        <div class="col-lg-6">
+                            <label class="form-label d-block mb-2">
+                                <i class="fas fa-palette me-2"></i>Màu sắc của sản phẩm
+                            </label>
+                            <small class="d-block text-muted mb-3">Chọn các tone màu chủ đạo để khách lọc nhanh trên trang Shop.</small>
+                            <div class="color-swatch-grid">
+                                @foreach($colorOptions as $name => $swatch)
+                                    <label class="color-swatch">
+                                        <input type="checkbox" name="colors[]" value="{{ $name }}" {{ in_array($name, $currentColors, true) ? 'checked' : '' }}>
+                                        <span class="swatch-dot" style="background: {{ $swatch }};"></span>
+                                        <span class="swatch-label">{{ $name }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+                            @error('colors') <div class="text-danger small mt-2">{{ $message }}</div> @enderror
+                            @error('colors.*') <div class="text-danger small mt-2">{{ $message }}</div> @enderror
+                        </div>
+
+                        <div class="col-lg-6">
+                            <label class="form-label d-block mb-2">
+                                <i class="fas fa-leaf me-2"></i>Nguyên liệu / Loại hoa
+                            </label>
+                            <small class="d-block text-muted mb-3">Tick chọn các loại hoa, lá, baby... có trong sản phẩm.</small>
+                            <div class="chip-grid">
+                                @foreach($materialOptions as $material)
+                                    <label class="chip">
+                                        <input type="checkbox" name="materials[]" value="{{ $material }}" {{ in_array($material, $currentMaterials, true) ? 'checked' : '' }}>
+                                        <span>{{ $material }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+                            @error('materials') <div class="text-danger small mt-2">{{ $message }}</div> @enderror
+                            @error('materials.*') <div class="text-danger small mt-2">{{ $message }}</div> @enderror
+                        </div>
+                    </div>
+                </div>
+
                 <div class="admin-section-title">Mô tả & hình ảnh</div>
                 <div class="admin-form-panel mb-4">
                     <div class="row g-4 align-items-start">
@@ -141,6 +185,67 @@
     }
     .size-row .btn-danger {
         padding: 0.375rem 0.75rem;
+    }
+
+    .color-swatch-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+        gap: 10px;
+    }
+    .color-swatch {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border: 1.5px solid #e3e7ef;
+        border-radius: 999px;
+        background: #fff;
+        cursor: pointer;
+        transition: all .15s ease;
+        margin: 0;
+    }
+    .color-swatch:hover { border-color: #f0a5c1; }
+    .color-swatch input { display: none; }
+    .color-swatch .swatch-dot {
+        width: 18px; height: 18px;
+        border-radius: 50%;
+        border: 1px solid rgba(0,0,0,.08);
+        flex: 0 0 auto;
+    }
+    .color-swatch .swatch-label { font-size: 14px; color: #455167; font-weight: 500; }
+    .color-swatch input:checked ~ .swatch-label { color: #c7345b; font-weight: 600; }
+    .color-swatch:has(input:checked) {
+        border-color: #f06595;
+        background: #fff0f6;
+        box-shadow: 0 4px 14px rgba(240,101,149,.15);
+    }
+
+    .chip-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .chip {
+        display: inline-flex;
+        align-items: center;
+        padding: 7px 14px;
+        border: 1.5px solid #e3e7ef;
+        border-radius: 999px;
+        background: #fff;
+        cursor: pointer;
+        font-size: 13.5px;
+        color: #455167;
+        transition: all .15s ease;
+        margin: 0;
+    }
+    .chip:hover { border-color: #9ec5fe; color: #1d4ed8; }
+    .chip input { display: none; }
+    .chip:has(input:checked) {
+        border-color: #6ea8fe;
+        background: #eff6ff;
+        color: #1d4ed8;
+        font-weight: 600;
+        box-shadow: 0 4px 14px rgba(110,168,254,.15);
     }
 </style>
 

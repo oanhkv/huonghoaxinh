@@ -9,28 +9,6 @@ use Illuminate\Http\Request;
 
 class ShopController extends Controller
 {
-    // Bảng giá trị filter chuẩn (đồng bộ với seeder).
-    private const COLOR_OPTIONS = [
-        'Đỏ' => '#dc3545',
-        'Hồng' => '#f06595',
-        'Trắng' => '#f8f9fa',
-        'Vàng' => '#ffc107',
-        'Cam' => '#fd7e14',
-        'Tím' => '#9d4edd',
-        'Xanh' => '#198754',
-        'Pastel' => '#fbcfe8',
-        'Kem' => '#fde68a',
-        'Mix' => 'linear-gradient(135deg, #dc3545, #ffc107, #198754, #9d4edd)',
-    ];
-
-    private const MATERIAL_OPTIONS = [
-        'Hoa hồng', 'Hoa hồng môn', 'Hoa hồng kem',
-        'Hoa lan', 'Hoa lan hồ điệp', 'Hoa lay ơn',
-        'Hoa cát tường', 'Hoa cẩm chướng', 'Hoa cẩm tú cầu',
-        'Hoa cúc', 'Hoa cúc trắng', 'Hoa hướng dương',
-        'Hoa đồng tiền', 'Baby', 'Lá xanh',
-    ];
-
     public function index(Request $request)
     {
         $query = Product::where('is_active', true)->with('category');
@@ -69,7 +47,7 @@ class ShopController extends Controller
         // Lọc theo màu sắc — dùng JSON_SEARCH vì MySQL có thể lưu unicode escape (\uXXXX)
         // khiến whereJsonContains không match được chuỗi tiếng Việt.
         $selectedColors = collect((array) $request->input('colors', []))
-            ->filter(fn ($c) => isset(self::COLOR_OPTIONS[$c]))
+            ->filter(fn ($c) => isset(Product::COLOR_OPTIONS[$c]))
             ->values();
         if ($selectedColors->isNotEmpty()) {
             $query->where(function ($q) use ($selectedColors) {
@@ -81,7 +59,7 @@ class ShopController extends Controller
 
         // Lọc theo nguyên liệu / loại hoa
         $selectedMaterials = collect((array) $request->input('materials', []))
-            ->filter(fn ($m) => in_array($m, self::MATERIAL_OPTIONS, true))
+            ->filter(fn ($m) => in_array($m, Product::MATERIAL_OPTIONS, true))
             ->values();
         if ($selectedMaterials->isNotEmpty()) {
             $query->where(function ($q) use ($selectedMaterials) {
@@ -114,8 +92,8 @@ class ShopController extends Controller
         return view('frontend.shop', [
             'products' => $products,
             'categories' => $categories,
-            'colorOptions' => self::COLOR_OPTIONS,
-            'materialOptions' => self::MATERIAL_OPTIONS,
+            'colorOptions' => Product::COLOR_OPTIONS,
+            'materialOptions' => Product::MATERIAL_OPTIONS,
             'selectedColors' => $selectedColors->all(),
             'selectedMaterials' => $selectedMaterials->all(),
         ]);

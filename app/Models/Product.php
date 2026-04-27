@@ -9,6 +9,28 @@ class Product extends Model
 {
     use HasFactory;
 
+    public const COLOR_OPTIONS = [
+        'Đỏ' => '#dc3545',
+        'Hồng' => '#f06595',
+        'Trắng' => '#f8f9fa',
+        'Vàng' => '#ffc107',
+        'Cam' => '#fd7e14',
+        'Tím' => '#9d4edd',
+        'Xanh' => '#198754',
+        'Xanh dương' => '#1d4ed8',
+        'Pastel' => '#fbcfe8',
+        'Kem' => '#fde68a',
+        'Mix' => 'linear-gradient(135deg, #dc3545, #ffc107, #198754, #9d4edd)',
+    ];
+
+    public const MATERIAL_OPTIONS = [
+        'Hoa hồng', 'Hoa hồng môn', 'Hoa hồng kem',
+        'Hoa lan', 'Hoa lan hồ điệp', 'Hoa lay ơn',
+        'Hoa cát tường', 'Hoa cẩm chướng', 'Hoa cẩm tú cầu',
+        'Hoa cúc', 'Hoa cúc trắng', 'Hoa hướng dương',
+        'Hoa đồng tiền', 'Baby', 'Lá xanh',
+    ];
+
     protected $fillable = [
         'name',
         'slug',
