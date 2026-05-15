@@ -243,6 +243,15 @@ Sau khi chạy seeder, bạn có thể đăng nhập với các tài khoản sau
 - [x] Dashboard với biểu đồ thống kê (Chart.js)
 - [x] Giao diện Responsive (Bootstrap 5)
 - [x] Trang Shop với tìm kiếm và lọc sản phẩm
+- [x] Quản lý mã giảm giá (Voucher)
+- [x] Quản lý đánh giá sản phẩm phía Admin
+- [x] Quản lý tin nhắn liên hệ và phản hồi khách hàng
+- [x] Blog (Danh sách + Chi tiết bài viết)
+- [x] Wishlist (Thêm / Xóa sản phẩm yêu thích)
+- [x] Checkout cơ bản + Lịch sử đơn hàng
+- [x] Quản lý hồ sơ người dùng (Profile)
+- [x] Cài đặt thông tin website (Website Settings)
+- [x] Thống kê doanh thu + Xuất báo cáo
 
 ### Đang phát triển 🔄
 
