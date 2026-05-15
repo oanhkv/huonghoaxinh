@@ -16,6 +16,33 @@
         height: 300px;
     }
 
+    .status-legend-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 14px;
+    }
+
+    .status-legend-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        background: #fff;
+        font-size: 0.85rem;
+        white-space: nowrap;
+    }
+
+    .status-legend-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        display: inline-block;
+        flex: 0 0 auto;
+    }
+
     @media (max-width: 992px) {
         .revenue-chart-wrap,
         .revenue-doughnut-wrap {
@@ -154,6 +181,16 @@
                 <div class="card-body">
                     <div class="revenue-doughnut-wrap">
                         <canvas id="orderStatusChart"></canvas>
+                    </div>
+                    <hr>
+                    <div class="status-legend-grid">
+                        @foreach($statusLegend as $item)
+                            <span class="status-legend-item">
+                                <span class="status-legend-dot" style="background: {{ $item['color'] }}"></span>
+                                <span class="text-capitalize">{{ $item['label'] }}</span>
+                                <strong>{{ $item['value'] }}</strong>
+                            </span>
+                        @endforeach
                     </div>
                     <hr>
                     <div class="small text-muted">
@@ -301,13 +338,7 @@
             maintainAspectRatio: false,
             animation: false,
             plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        usePointStyle: true,
-                        pointStyle: 'circle'
-                    }
-                }
+                legend: { display: false }
             }
         }
     });

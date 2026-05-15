@@ -18,6 +18,8 @@ class RevenueController extends Controller
 
     private const MAX_POINTS_MONTHLY = 36;
 
+    private const REVENUE_STATUSES = ['paid', 'cod', 'delivered', 'completed'];
+
     public function index(Request $request)
     {
         $startDate = $request->filled('date_from')
@@ -50,19 +52,40 @@ class RevenueController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $completedOrders = $ordersInRange->where('status', 'completed');
+        $revenueOrders = $ordersInRange->whereIn('status', self::REVENUE_STATUSES);
 
         $totalOrders = $ordersInRange->count();
-        $completedOrdersCount = $completedOrders->count();
+        $completedOrdersCount = $revenueOrders->count();
         $cancelledOrdersCount = $ordersInRange->where('status', 'cancelled')->count();
-        $totalRevenue = (float) $completedOrders->sum('total_amount');
+        $totalRevenue = (float) $revenueOrders->sum('total_amount');
         $averageOrderValue = $completedOrdersCount > 0 ? $totalRevenue / $completedOrdersCount : 0;
 
-        $chartData = $this->buildRevenueChartData($completedOrders, $startDate, $endDate, $groupBy);
+        $chartData = $this->buildRevenueChartData($revenueOrders, $startDate, $endDate, $groupBy);
 
-        $statusChartLabels = ['pending', 'confirmed', 'shipping', 'completed', 'cancelled'];
+        $statusChartLabels = ['pending', 'confirmed', 'shipping', 'paid', 'cod', 'delivered', 'completed', 'cancelled'];
         $statusChartValues = collect($statusChartLabels)
             ->map(fn ($status) => $ordersInRange->where('status', $status)->count())
+            ->all();
+
+        $statusChartColors = [
+            '#f59e0b', // pending
+            '#0ea5e9', // confirmed
+            '#4a8df7', // shipping
+            '#22c55e', // paid
+            '#8b5cf6', // cod
+            '#16a34a', // delivered
+            '#2563eb', // completed
+            '#dc2626', // cancelled
+        ];
+
+        $statusLegend = collect($statusChartLabels)
+            ->map(function ($status, $index) use ($statusChartValues, $statusChartColors) {
+                return [
+                    'label' => $status,
+                    'value' => $statusChartValues[$index] ?? 0,
+                    'color' => $statusChartColors[$index] ?? '#999999',
+                ];
+            })
             ->all();
 
         $recentOrders = $ordersInRange->take(10);
@@ -81,6 +104,7 @@ class RevenueController extends Controller
             'chartValues' => $chartData['values'],
             'statusChartLabels' => $statusChartLabels,
             'statusChartValues' => $statusChartValues,
+            'statusLegend' => $statusLegend,
             'recentOrders' => $recentOrders,
         ]);
     }
