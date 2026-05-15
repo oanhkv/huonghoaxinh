@@ -14,7 +14,10 @@ class OrderController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Order::with('user')->latest();
+        // Hiện ưu tiên hiển thị các đơn "mới" (vừa đặt hoặc vừa thanh toán) lên đầu
+        $query = Order::with('user')
+            ->orderByRaw("CASE WHEN status IN ('pending','paid') THEN 0 ELSE 1 END")
+            ->orderBy('created_at', 'desc');
 
         // Tìm kiếm theo mã đơn hoặc tên khách
         if ($request->filled('search')) {

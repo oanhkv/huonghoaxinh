@@ -55,7 +55,12 @@
                 <tbody>
                     @forelse($orders as $order)
                     <tr>
-                        <td><strong>#{{ $order->order_code ?? 'HH'.$order->id }}</strong></td>
+                        <td class="position-relative">
+                            @if(in_array($order->status, ['pending','paid']))
+                                <span class="badge bg-danger position-absolute" style="top:6px;left:6px;font-size:0.65rem;">NEW</span>
+                            @endif
+                            <strong class="ms-3">#{{ $order->order_code ?? 'HH'.$order->id }}</strong>
+                        </td>
                         <td>{{ $order->user->name ?? 'Khách vãng lai' }}</td>
                         <td>{{ $order->created_at->format('d/m/Y H:i') }}</td>
                         <td class="fw-bold text-danger">{{ number_format($order->total_amount) }}đ</td>
