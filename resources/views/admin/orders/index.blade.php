@@ -56,7 +56,7 @@
                     @forelse($orders as $order)
                     <tr>
                         <td class="position-relative">
-                            @if(in_array($order->status, ['pending','paid']))
+                            @if(is_null($order->viewed_at))
                                 <span class="badge bg-danger position-absolute" style="top:6px;left:6px;font-size:0.65rem;">NEW</span>
                             @endif
                             <strong class="ms-3">#{{ $order->order_code ?? 'HH'.$order->id }}</strong>

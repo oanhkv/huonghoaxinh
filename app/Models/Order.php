@@ -18,10 +18,12 @@ class Order extends Model
         'shipping_address',
         'phone',
         'note',
+        'viewed_at',
     ];
 
     protected $casts = [
         'stock_deducted' => 'boolean',
+        'viewed_at' => 'datetime',
     ];
 
     public function user()
