@@ -33,17 +33,6 @@
                             @error('name') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
 
-                        <div class="col-lg-4">
-                            <label class="form-label">Danh mục cha</label>
-                            <select name="parent_id" class="form-select @error('parent_id') is-invalid @enderror">
-                                <option value="">-- Đây là danh mục chính --</option>
-                                @foreach($parentCategories as $parent)
-                                    <option value="{{ $parent->id }}" {{ old('parent_id') == $parent->id ? 'selected' : '' }}>{{ $parent->name }}</option>
-                                @endforeach
-                            </select>
-                            @error('parent_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                        </div>
-
                         <div class="col-12">
                             <label class="form-label">Mô tả</label>
                             <textarea name="description" class="form-control @error('description') is-invalid @enderror" rows="5" placeholder="Mô tả ngắn về danh mục...">{{ old('description') }}</textarea>
