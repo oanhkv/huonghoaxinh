@@ -44,7 +44,6 @@
                         <th>Tên danh mục</th>
                         <th>Slug</th>
                         <th>Số sản phẩm</th>
-                        <th>Danh mục cha</th>
                         <th>Hành động</th>
                     </tr>
                 </thead>
@@ -56,7 +55,6 @@
                         <td>
                             <span class="badge bg-primary">{{ $category->products_count }}</span>
                         </td>
-                        <td>{{ $category->parent ? $category->parent->name : '—' }}</td>
                         <td>
                             <a href="{{ route('admin.categories.edit', $category) }}" class="btn btn-sm btn-warning">
                                 <i class="fas fa-edit"></i>
@@ -95,7 +93,7 @@
                     </div>
 
                     @empty
-                    <tr><td colspan="5" class="text-center py-4">Chưa có danh mục nào.</td></tr>
+                    <tr><td colspan="4" class="text-center py-4">Chưa có danh mục nào.</td></tr>
                     @endforelse
                 </tbody>
             </table>
