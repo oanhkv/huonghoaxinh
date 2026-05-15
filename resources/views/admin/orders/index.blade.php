@@ -56,7 +56,7 @@
                     @forelse($orders as $order)
                     <tr>
                         <td class="position-relative">
-                            @if(is_null($order->viewed_at))
+                            @if(!empty($order->is_new))
                                 <span class="badge bg-danger position-absolute" style="top:6px;left:6px;font-size:0.65rem;">NEW</span>
                             @endif
                             <strong class="ms-3">#{{ $order->order_code ?? 'HH'.$order->id }}</strong>

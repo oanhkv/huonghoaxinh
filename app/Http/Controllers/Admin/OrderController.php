@@ -17,8 +17,15 @@ class OrderController extends Controller
         // Xóa các đơn có ngày đặt trong tương lai (dữ liệu không hợp lệ)
         Order::where('created_at', '>', now())->delete();
 
-        // Hiển thị theo ngày đặt (sớm nhất lên trước)
-        $query = Order::with('user')->orderBy('created_at', 'asc');
+        // Tìm ID của 3 đơn mới nhất để hiển thị badge NEW (nếu chưa xem)
+        $newOrderIds = Order::where('created_at', '<=', now())
+            ->orderBy('created_at', 'desc')
+            ->limit(3)
+            ->pluck('id')
+            ->toArray();
+
+        // Hiển thị theo ngày đặt (mới nhất lên đầu)
+        $query = Order::with('user')->orderBy('created_at', 'desc');
 
         // Tìm kiếm theo mã đơn hoặc tên khách
         if ($request->filled('search')) {
@@ -36,19 +43,27 @@ class OrderController extends Controller
             $query->where('status', $request->status);
         }
 
-        $orders = $query->paginate(10);
+        $orders = $query->paginate(10)->withQueryString();
 
-        return view('admin.orders.index', compact('orders'));
+        // Đánh dấu thuộc tính tạm thời is_new cho mỗi order (dùng trong view)
+        $orders->getCollection()->transform(function ($o) use ($newOrderIds) {
+            $o->is_new = (in_array($o->id, $newOrderIds) && is_null($o->viewed_at));
+            return $o;
+        });
+
+        return view('admin.orders.index', compact('orders', 'newOrderIds'));
     }
 
     public function show(Order $order)
     {
         $order->load('orderItems.product');
 
-        // Đánh dấu là đã xem (nếu chưa có)
-        if (! $order->viewed_at) {
-            $order->viewed_at = now();
-            $order->save();
+        // Đánh dấu là đã xem (nếu cột viewed_at đã được thêm vào database)
+        if (\Illuminate\Support\Facades\Schema::hasColumn('orders', 'viewed_at')) {
+            if (! $order->viewed_at) {
+                $order->viewed_at = now();
+                $order->save();
+            }
         }
 
         return view('admin.orders.show', compact('order'));
