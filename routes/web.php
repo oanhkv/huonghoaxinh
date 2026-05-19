@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Admin\AdminProfileController;
 use App\Http\Controllers\Admin\Auth\AdminAuthenticatedSessionController;
+use App\Http\Controllers\Admin\BlogCategoryController as AdminBlogCategoryController;
+use App\Http\Controllers\Admin\BlogPostController as AdminBlogPostController;
 use App\Http\Controllers\Admin\CategoryController;
 // ==================== FRONTEND ====================
 use App\Http\Controllers\Admin\DashboardController;
@@ -16,6 +18,7 @@ use App\Http\Controllers\Admin\WebsiteSettingController;
 use App\Http\Controllers\Admin\ContactMessageController as AdminContactMessageController;
 use App\Http\Controllers\Frontend\BlogController;
 use App\Http\Controllers\Frontend\CartController;
+use App\Http\Controllers\Frontend\ContactMessageController as FrontendContactMessageController;
 use App\Http\Controllers\Frontend\HomeController;
 use App\Http\Controllers\Frontend\PaymentController;
 // ==================== FRONTEND ROUTES ====================
@@ -33,7 +36,6 @@ Route::get('/product/{slug}', [FrontendProductController::class, 'show'])->name(
 Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
 Route::get('/blog/{post:slug}', [BlogController::class, 'show'])->name('blog.show');
 Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
-Route::post('/contact', [HomeController::class, 'submitContact'])->name('contact.submit');
 // Trang Giới thiệu (About Us)
 Route::get('/about', [HomeController::class, 'about'])->name('about');
 // Trang Mã giảm giá (Vouchers)
@@ -85,6 +87,15 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::post('/profile/lock', [ProfileController::class, 'lock'])->name('profile.lock');
+
+    // Hộp thoại chat 2 chiều với shop (lưu DB, không gửi email)
+    Route::prefix('account/contact')->name('account.contact.')->group(function () {
+        Route::get('/', [FrontendContactMessageController::class, 'index'])->name('index');
+        Route::get('/unread-count', [FrontendContactMessageController::class, 'unreadCount'])->name('unread-count');
+        Route::get('/{contactMessage}', [FrontendContactMessageController::class, 'show'])->name('show');
+        Route::post('/{contactMessage}/reply', [FrontendContactMessageController::class, 'reply'])->name('reply');
+        Route::get('/{contactMessage}/poll', [FrontendContactMessageController::class, 'poll'])->name('poll');
+    });
 });
 
 // ==================== ADMIN ROUTES ====================
@@ -124,6 +135,10 @@ Route::prefix('admin')
         // Quản lý Mã giảm giá
         Route::resource('vouchers', VoucherController::class)->except(['show']);
 
+        // Quản lý Blog
+        Route::resource('blog-posts', AdminBlogPostController::class)->except(['show']);
+        Route::resource('blog-categories', AdminBlogCategoryController::class)->except(['show']);
+
         // Thống kê doanh thu
         Route::get('revenue', [RevenueController::class, 'index'])->name('revenue.index');
         Route::get('revenue/export', [RevenueController::class, 'export'])->name('revenue.export');
@@ -140,11 +155,12 @@ Route::prefix('admin')
         Route::get('settings', [WebsiteSettingController::class, 'edit'])->name('settings.edit');
         Route::put('settings', [WebsiteSettingController::class, 'update'])->name('settings.update');
 
-        // Tin nhắn liên hệ / Hỏi đáp
+        // Hộp thoại chat với khách hàng
         Route::get('contact-messages', [AdminContactMessageController::class, 'index'])->name('contact-messages.index');
         Route::get('contact-messages/{contactMessage}', [AdminContactMessageController::class, 'show'])->name('contact-messages.show');
         Route::delete('contact-messages/{contactMessage}', [AdminContactMessageController::class, 'destroy'])->name('contact-messages.destroy');
         Route::post('contact-messages/{contactMessage}/reply', [AdminContactMessageController::class, 'reply'])->name('contact-messages.reply');
+        Route::get('contact-messages/{contactMessage}/poll', [AdminContactMessageController::class, 'poll'])->name('contact-messages.poll');
     });
 
 require __DIR__.'/auth.php';

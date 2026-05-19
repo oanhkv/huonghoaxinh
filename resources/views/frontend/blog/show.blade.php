@@ -3,6 +3,9 @@
 @section('title', $post->title)
 
 @section('content')
+{{-- Reading progress bar (cuộn theo bài) --}}
+<div id="blogReadingBar" class="blog-reading-bar"></div>
+
 <div class="blog-detail-page">
     <header class="blog-detail-hero">
         <div class="container">
@@ -212,6 +215,34 @@
     .blog-detail-content a { color: #d63384; text-decoration: none; border-bottom: 1px dashed #d63384; }
     .blog-detail-content a:hover { color: #b02a6c; }
 
+    /* ===== Quill output classes — render đúng format từ editor ===== */
+    .blog-detail-content .ql-align-center { text-align: center; }
+    .blog-detail-content .ql-align-right  { text-align: right; }
+    .blog-detail-content .ql-align-justify{ text-align: justify; }
+    .blog-detail-content .ql-size-small   { font-size: 0.85em; }
+    .blog-detail-content .ql-size-large   { font-size: 1.4em; }
+    .blog-detail-content .ql-size-huge    { font-size: 2.0em; line-height: 1.3; }
+    .blog-detail-content .ql-indent-1 { padding-left: 2.4em; }
+    .blog-detail-content .ql-indent-2 { padding-left: 4.8em; }
+    .blog-detail-content .ql-indent-3 { padding-left: 7.2em; }
+    .blog-detail-content .ql-indent-4 { padding-left: 9.6em; }
+    .blog-detail-content .ql-indent-5 { padding-left: 12em; }
+    .blog-detail-content .ql-font-serif { font-family: Georgia, 'Times New Roman', serif; }
+    .blog-detail-content .ql-font-monospace { font-family: 'Courier New', Consolas, monospace; }
+    .blog-detail-content .ql-code-block-container,
+    .blog-detail-content .ql-code-block,
+    .blog-detail-content pre.ql-syntax {
+        background: #1e293b; color: #f1f5f9;
+        padding: 14px 18px; border-radius: 10px;
+        font-family: 'Courier New', Consolas, monospace;
+        font-size: 0.92em; overflow-x: auto;
+        margin: 1.2rem 0;
+    }
+    .blog-detail-content .ql-video {
+        max-width: 100%; aspect-ratio: 16/9;
+        margin: 1.2rem 0; border-radius: 10px;
+    }
+
     .blog-detail-share { background: linear-gradient(135deg, #fff5f8 0%, #f8fafc 100%); }
 
     .blog-related-item { transition: transform 0.25s ease; }
@@ -235,9 +266,67 @@
 
     .blog-cta-card { background: linear-gradient(135deg, #fff5f8 0%, #fff 100%); }
 
+    /* ===== Reading progress bar ===== */
+    .blog-reading-bar {
+        position: fixed; top: 0; left: 0;
+        height: 4px; width: 0%;
+        background: linear-gradient(90deg, #d63384, #f06595, #ff8fab);
+        z-index: 9999;
+        box-shadow: 0 2px 6px rgba(214,51,132,.3);
+        transition: width .1s ease-out;
+    }
+
+    /* ===== Scroll to top ===== */
+    .blog-back-top {
+        position: fixed; right: 26px; bottom: 96px;
+        width: 48px; height: 48px;
+        border-radius: 50%;
+        background: #fff;
+        border: 1.5px solid #fce7f3;
+        color: #d63384;
+        display: none; align-items: center; justify-content: center;
+        font-size: 18px;
+        box-shadow: 0 8px 22px rgba(214,51,132,.25);
+        z-index: 9998;
+        cursor: pointer;
+        transition: transform .2s ease;
+    }
+    .blog-back-top:hover { transform: translateY(-3px); background: #fdf2f8; }
+    .blog-back-top.is-visible { display: flex; }
+
     @media (max-width: 767.98px) {
         .blog-detail-title { font-size: 1.7rem; }
         .blog-detail-hero { padding: 50px 0 40px; }
     }
 </style>
+
+<button type="button" class="blog-back-top" id="blogBackTop" aria-label="Lên đầu trang">
+    <i class="fas fa-arrow-up"></i>
+</button>
+
+<script>
+(function () {
+    const bar = document.getElementById('blogReadingBar');
+    const article = document.querySelector('.blog-detail-content');
+    const backTop = document.getElementById('blogBackTop');
+
+    function update() {
+        if (article) {
+            const top    = article.getBoundingClientRect().top + window.scrollY;
+            const height = article.offsetHeight;
+            const scrollY = window.scrollY;
+            const visible = Math.min(window.innerHeight, scrollY + window.innerHeight - top);
+            const pct = Math.max(0, Math.min(100, (visible / height) * 100));
+            bar.style.width = pct + '%';
+        }
+        backTop.classList.toggle('is-visible', window.scrollY > 600);
+    }
+    window.addEventListener('scroll', update, { passive: true });
+    update();
+
+    backTop.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+})();
+</script>
 @endsection

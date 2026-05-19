@@ -3,145 +3,344 @@
 @section('title', 'Blog - Hương Hoa Xinh')
 
 @section('content')
-<div class="border-bottom bg-white">
-    <div class="container py-5">
-        <div class="text-center mb-2">
-            <span class="badge rounded-pill bg-success bg-opacity-10 text-success px-3 py-2">Blog &amp; cảm hứng</span>
+{{-- ===== Hero ===== --}}
+<div class="blog-hero">
+    <div class="container py-5 position-relative">
+        <div class="text-center mx-auto" style="max-width:760px;">
+            <span class="blog-hero-badge"><i class="fas fa-leaf me-1"></i> Blog Hương Hoa Xinh</span>
+            <h1 class="blog-hero-title">Chuyện hoa, quà và những ngày đáng nhớ</h1>
+            <p class="blog-hero-sub">
+                Mẹo chọn hoa theo dịp, ý nghĩa từng loài hoa, ý tưởng cắm hoa & gói quà — viết bởi đội ngũ Hương Hoa Xinh.
+            </p>
         </div>
-        <h1 class="fw-bold text-center mb-2">Chuyện hoa, quà và những ngày đáng nhớ</h1>
-        <p class="text-muted text-center mx-auto mb-0" style="max-width: 640px;">
-            Mẹo chọn hoa theo dịp, ý tưởng gói quà, xu hướng màu sắc mùa — viết ngắn gọn, dễ đọc, để bạn tự tin đặt một món quà ý nghĩa.
-        </p>
     </div>
 </div>
 
-<div class="container py-5">
-    @if(isset($featuredPost) && $featuredPost)
-        <div class="card border-0 shadow rounded-4 overflow-hidden mb-5 blog-featured">
-            <div class="row g-0 align-items-stretch">
-                <div class="col-lg-6">
-                    @if($featuredPost->image)
-                        <div class="h-100" style="min-height: 280px;">
-                            <img src="{{ $featuredPost->image_url }}" class="w-100 h-100 object-fit-cover" alt="{{ $featuredPost->title }}" style="min-height: 280px; object-fit: cover;">
-                        </div>
-                    @else
-                        <div class="h-100 d-flex align-items-center justify-content-center bg-success bg-opacity-10" style="min-height: 280px;">
-                            <i class="fas fa-star fa-4x text-success opacity-75"></i>
-                        </div>
-                    @endif
-                </div>
-                <div class="col-lg-6">
-                    <div class="p-4 p-lg-5 d-flex flex-column h-100 justify-content-center">
-                        <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill align-self-start mb-3">Bài nổi bật</span>
-                        @if($featuredPost->category)
-                            <a href="{{ route('blog.index', ['category' => $featuredPost->category->slug]) }}" class="text-success text-decoration-none small fw-semibold mb-2">{{ $featuredPost->category->name }}</a>
+<div class="container py-5 blog-page">
+
+    {{-- ===== Category pills (filter) ===== --}}
+    <div class="blog-cat-pills mb-4">
+        <a href="{{ route('blog.index') }}" class="blog-cat-pill {{ ! request('category') ? 'is-active' : '' }}">
+            <i class="fas fa-bars me-1"></i> Tất cả
+        </a>
+        @foreach($categories as $category)
+            @if($category->posts_count > 0)
+                <a href="{{ route('blog.index', ['category' => $category->slug]) }}"
+                   class="blog-cat-pill {{ request('category') === $category->slug ? 'is-active' : '' }}">
+                    <i class="fas fa-tag me-1"></i>{{ $category->name }}
+                    <span class="blog-cat-pill-count">{{ $category->posts_count }}</span>
+                </a>
+            @endif
+        @endforeach
+    </div>
+
+    {{-- ===== Featured ===== --}}
+    @if(! request('category') && isset($featuredPost) && $featuredPost)
+        <article class="blog-featured mb-5">
+            <div class="row g-0">
+                <div class="col-lg-7">
+                    <a href="{{ route('blog.show', $featuredPost->slug) }}" class="blog-featured-img-link">
+                        @if($featuredPost->image)
+                            <img src="{{ $featuredPost->image_url }}" alt="{{ $featuredPost->title }}">
+                        @else
+                            <div class="blog-featured-placeholder">
+                                <i class="fas fa-star"></i>
+                            </div>
                         @endif
-                        <h2 class="fw-bold mb-3">{{ $featuredPost->title }}</h2>
-                        <p class="text-muted mb-4">{{ Str::limit($featuredPost->excerpt ?? strip_tags($featuredPost->content), 220) }}</p>
-                        <div class="d-flex flex-wrap align-items-center gap-3 mt-auto">
-                            <a href="{{ route('blog.show', $featuredPost->slug) }}" class="btn btn-success rounded-pill px-4">Đọc ngay</a>
-                            <span class="text-muted small">
-                                <i class="far fa-calendar-alt me-1"></i>
-                                {{ $featuredPost->published_at ? $featuredPost->published_at->format('d/m/Y') : $featuredPost->created_at->format('d/m/Y') }}
+                        <span class="blog-featured-pin"><i class="fas fa-star me-1"></i>Bài nổi bật</span>
+                    </a>
+                </div>
+                <div class="col-lg-5">
+                    <div class="p-4 p-lg-5 d-flex flex-column h-100 justify-content-center">
+                        @if($featuredPost->category)
+                            <a href="{{ route('blog.index', ['category' => $featuredPost->category->slug]) }}"
+                               class="blog-featured-cat">
+                                <i class="fas fa-tag me-1"></i>{{ $featuredPost->category->name }}
+                            </a>
+                        @endif
+                        <h2 class="blog-featured-title">
+                            <a href="{{ route('blog.show', $featuredPost->slug) }}">{{ $featuredPost->title }}</a>
+                        </h2>
+                        <div class="blog-featured-excerpt">
+                            {{ \Illuminate\Support\Str::limit(strip_tags($featuredPost->excerpt ?: $featuredPost->content), 220) }}
+                        </div>
+                        <div class="d-flex flex-wrap align-items-center gap-3 mt-3">
+                            <a href="{{ route('blog.show', $featuredPost->slug) }}" class="btn btn-success rounded-pill px-4">
+                                <i class="fas fa-arrow-right me-1"></i>Đọc bài
+                            </a>
+                            <span class="blog-meta-small">
+                                <i class="far fa-calendar me-1"></i>
+                                {{ optional($featuredPost->published_at)->format('d/m/Y') ?? $featuredPost->created_at->format('d/m/Y') }}
+                            </span>
+                            <span class="blog-meta-small">
+                                <i class="far fa-clock me-1"></i>
+                                {{ max(1, intval(str_word_count(strip_tags($featuredPost->content)) / 200)) }} phút đọc
                             </span>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-        <style>
-            @media (min-width: 992px) {
-                .blog-featured .col-lg-6:first-child { max-height: 380px; overflow: hidden; }
-            }
-        </style>
+        </article>
     @endif
 
-    <div class="row gy-4">
-        <div class="col-lg-4">
-            <div class="card shadow-sm border-0 rounded-4 p-4 h-100 sticky-lg-top" style="top: 5.5rem;">
-                <h5 class="mb-3 fw-bold">Danh mục</h5>
-                <p class="small text-muted mb-3">Lọc nhanh theo chủ đề bạn quan tâm.</p>
-                <div class="list-group list-group-flush">
-                    <a href="{{ route('blog.index') }}" class="list-group-item list-group-item-action px-0 border-0 @if(!request('category')) active @endif">
-                        Tất cả bài viết
-                    </a>
-                    @foreach($categories as $category)
-                        <a href="{{ route('blog.index', ['category' => $category->slug]) }}" class="list-group-item list-group-item-action px-0 border-0 @if(request('category') == $category->slug) active @endif">
-                            <div class="d-flex align-items-center justify-content-between">
-                                <span>{{ $category->name }}</span>
-                                <span class="badge bg-success rounded-pill">{{ $category->posts_count }}</span>
-                            </div>
-                            @if($category->description)
-                                <small class="text-muted">{{ Str::limit($category->description, 48) }}</small>
-                            @endif
-                        </a>
-                    @endforeach
-                </div>
+    {{-- ===== Posts grid ===== --}}
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+        <div>
+            <h3 class="fw-bold mb-1">
+                @if(request('category'))
+                    {{ optional($categories->firstWhere('slug', request('category')))->name ?? 'Bài viết' }}
+                @else
+                    Bài viết mới nhất
+                @endif
+            </h3>
+            <div class="text-muted small">{{ $posts->total() }} bài viết</div>
+        </div>
+    </div>
+
+    @if($posts->isEmpty())
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-newspaper fa-3x text-muted mb-3 d-block opacity-50"></i>
+                <h5 class="text-muted">Chưa có bài viết trong mục này.</h5>
+                <a href="{{ route('blog.index') }}" class="btn btn-success rounded-pill mt-2">
+                    <i class="fas fa-arrow-left me-1"></i>Xem tất cả bài viết
+                </a>
             </div>
         </div>
-
-        <div class="col-lg-8">
-            <div class="mb-4 d-flex flex-wrap align-items-center gap-2 justify-content-between">
-                <div>
-                    <span class="badge bg-success">{{ $posts->total() }} bài</span>
-                    @if(request('category'))
-                        <span class="badge bg-secondary">Đang lọc: {{ optional($categories->firstWhere('slug', request('category')))->name ?? 'Danh mục' }}</span>
-                    @endif
-                </div>
-                <div class="text-muted small">
-                    Mới nhất: {{ $posts->first()?->published_at?->format('d/m/Y') ?? $posts->first()?->created_at?->format('d/m/Y') ?? '—' }}
-                </div>
-            </div>
-
-            <div class="row g-4">
-                @forelse($posts as $post)
-                    <div class="col-md-6">
-                        <article class="card h-100 shadow-sm border-0 overflow-hidden rounded-4 blog-card-hover">
+    @else
+        <div class="row g-4">
+            @foreach($posts as $post)
+                <div class="col-md-6 col-xl-4">
+                    <article class="blog-card">
+                        <a href="{{ route('blog.show', $post->slug) }}" class="blog-card-img-link">
                             @if($post->image)
-                                <div class="position-relative overflow-hidden" style="height: 200px;">
-                                    <img src="{{ $post->image_url }}" class="w-100 h-100" style="object-fit: cover;" alt="{{ $post->title }}">
-                                    <div class="position-absolute top-0 end-0 m-2">
-                                        @if($post->category)
-                                            <span class="badge bg-dark bg-opacity-75 rounded-pill">{{ $post->category->name }}</span>
-                                        @endif
-                                    </div>
-                                </div>
+                                <img src="{{ $post->image_url }}" alt="{{ $post->title }}">
                             @else
-                                <div class="bg-success bg-opacity-10 d-flex align-items-center justify-content-center position-relative" style="height: 200px;">
-                                    <i class="fas fa-newspaper fa-3x text-success opacity-50"></i>
-                                    @if($post->category)
-                                        <span class="position-absolute top-0 end-0 m-2 badge bg-dark bg-opacity-75 rounded-pill">{{ $post->category->name }}</span>
-                                    @endif
+                                <div class="blog-card-placeholder">
+                                    <i class="fas fa-newspaper"></i>
                                 </div>
                             @endif
-
-                            <div class="card-body d-flex flex-column">
-                                <h2 class="h5 card-title fw-bold">{{ Str::limit($post->title, 72) }}</h2>
-                                <p class="text-muted small mb-3 flex-grow-1">{{ Str::limit($post->excerpt ?? strip_tags($post->content), 100) }}</p>
-                                <div class="mt-auto d-flex justify-content-between align-items-center">
-                                    <time class="text-muted small" datetime="{{ $post->published_at?->toIso8601String() }}">{{ $post->published_at ? $post->published_at->format('d/m/Y') : $post->created_at->format('d/m/Y') }}</time>
-                                    <a href="{{ route('blog.show', $post->slug) }}" class="btn btn-outline-success btn-sm rounded-pill">Đọc tiếp</a>
-                                </div>
+                            @if($post->category)
+                                <span class="blog-card-cat">{{ $post->category->name }}</span>
+                            @endif
+                        </a>
+                        <div class="blog-card-body">
+                            <h5 class="blog-card-title">
+                                <a href="{{ route('blog.show', $post->slug) }}">{{ $post->title }}</a>
+                            </h5>
+                            <p class="blog-card-excerpt">
+                                {{ \Illuminate\Support\Str::limit(strip_tags($post->excerpt ?: $post->content), 110) }}
+                            </p>
+                            <div class="blog-card-foot">
+                                <span class="blog-meta-small">
+                                    <i class="far fa-calendar me-1"></i>
+                                    {{ optional($post->published_at)->format('d/m/Y') ?? $post->created_at->format('d/m/Y') }}
+                                </span>
+                                <a href="{{ route('blog.show', $post->slug) }}" class="blog-card-link">
+                                    Đọc tiếp <i class="fas fa-arrow-right ms-1"></i>
+                                </a>
                             </div>
-                        </article>
-                    </div>
-                @empty
-                    <div class="col-12 text-center py-5">
-                        <h4 class="text-muted">Chưa có bài viết trong mục này.</h4>
-                        <p class="text-muted mb-4">Quay lại sau hoặc xem danh mục khác nhé.</p>
-                        <a href="{{ route('blog.index') }}" class="btn btn-success rounded-pill">Xem tất cả</a>
-                    </div>
-                @endforelse
-            </div>
+                        </div>
+                    </article>
+                </div>
+            @endforeach
+        </div>
 
+        @if($posts->hasPages())
             <div class="d-flex justify-content-center mt-5">
                 {{ $posts->links() }}
             </div>
-        </div>
-    </div>
+        @endif
+    @endif
 </div>
+
 <style>
-    .blog-card-hover { transition: transform 0.25s ease, box-shadow 0.25s ease; }
-    .blog-card-hover:hover { transform: translateY(-6px); box-shadow: 0 20px 40px rgba(15,23,42,0.1) !important; }
+/* ===== Hero ===== */
+.blog-hero {
+    background:
+        radial-gradient(circle at 10% 0%, rgba(214,51,132,.08), transparent 50%),
+        radial-gradient(circle at 90% 100%, rgba(25,135,84,.08), transparent 50%),
+        linear-gradient(180deg, #ffffff 0%, #fafbfc 100%);
+    border-bottom: 1px solid rgba(15,23,42,.05);
+}
+.blog-hero-badge {
+    display: inline-block; padding: 6px 16px; border-radius: 999px;
+    background: rgba(25,135,84,.12); color: #198754;
+    font-weight: 700; font-size: 13px;
+    margin-bottom: 16px;
+}
+.blog-hero-title {
+    font-weight: 800; font-size: 2.2rem; line-height: 1.2;
+    margin-bottom: 14px;
+    background: linear-gradient(135deg, #1f2937, #198754);
+    -webkit-background-clip: text; background-clip: text;
+    color: transparent;
+}
+.blog-hero-sub { color: #6b7280; font-size: 1.05rem; }
+
+/* ===== Category pills ===== */
+.blog-cat-pills {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    padding: 16px;
+    background: #fff;
+    border: 1px solid #f1f2f6;
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(15,23,42,.04);
+}
+.blog-cat-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 16px;
+    border-radius: 999px;
+    background: #f3f4f6;
+    color: #4b5563;
+    font-weight: 600; font-size: 13px;
+    text-decoration: none;
+    border: 1.5px solid transparent;
+    transition: all .15s ease;
+}
+.blog-cat-pill:hover {
+    background: #ecfdf5; color: #065f46; border-color: #6ee7b7;
+}
+.blog-cat-pill.is-active {
+    background: linear-gradient(135deg, #198754, #20a464);
+    color: #fff;
+    box-shadow: 0 6px 14px rgba(25,135,84,.3);
+}
+.blog-cat-pill.is-active .blog-cat-pill-count {
+    background: rgba(255,255,255,.25); color: #fff;
+}
+.blog-cat-pill-count {
+    background: #fff; color: #1f2937;
+    font-size: 11px; font-weight: 700;
+    padding: 1px 8px; border-radius: 999px;
+}
+
+/* ===== Featured ===== */
+.blog-featured {
+    background: #fff;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 14px 40px rgba(15,23,42,.08);
+    border: 1px solid #f1f2f6;
+}
+.blog-featured-img-link {
+    position: relative; display: block;
+    height: 100%; min-height: 360px;
+}
+.blog-featured-img-link img {
+    width: 100%; height: 100%;
+    min-height: 360px;
+    object-fit: cover;
+    display: block;
+}
+.blog-featured-placeholder {
+    width: 100%; height: 100%; min-height: 360px;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    color: #d97706; font-size: 80px;
+}
+.blog-featured-pin {
+    position: absolute; top: 16px; left: 16px;
+    background: linear-gradient(135deg, #f59e0b, #f97316);
+    color: #fff;
+    padding: 6px 14px; border-radius: 999px;
+    font-weight: 700; font-size: 12px;
+    box-shadow: 0 6px 14px rgba(245,158,11,.4);
+}
+.blog-featured-cat {
+    align-self: flex-start;
+    display: inline-flex; align-items: center;
+    background: #ecfdf5; color: #065f46;
+    padding: 4px 12px; border-radius: 999px;
+    font-size: 12px; font-weight: 700;
+    text-decoration: none;
+    margin-bottom: 14px;
+}
+.blog-featured-cat:hover { background: #d1fae5; }
+.blog-featured-title {
+    font-weight: 800; font-size: 1.85rem; line-height: 1.25;
+    margin-bottom: 16px;
+}
+.blog-featured-title a { color: #111827; text-decoration: none; }
+.blog-featured-title a:hover { color: #198754; }
+.blog-featured-excerpt { color: #6b7280; line-height: 1.7; }
+
+.blog-meta-small {
+    font-size: 13px; color: #9ca3af;
+}
+
+/* ===== Blog card ===== */
+.blog-card {
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 14px rgba(15,23,42,.05);
+    border: 1px solid #f1f2f6;
+    height: 100%;
+    display: flex; flex-direction: column;
+    transition: transform .25s ease, box-shadow .25s ease;
+}
+.blog-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 40px rgba(15,23,42,.10);
+}
+.blog-card-img-link {
+    position: relative; display: block;
+    aspect-ratio: 16/10;
+    overflow: hidden;
+    background: #f3f4f6;
+}
+.blog-card-img-link img {
+    width: 100%; height: 100%; object-fit: cover;
+    transition: transform .35s ease;
+}
+.blog-card:hover .blog-card-img-link img { transform: scale(1.06); }
+.blog-card-placeholder {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    color: #d97706; font-size: 50px;
+}
+.blog-card-cat {
+    position: absolute; bottom: 12px; left: 12px;
+    background: rgba(0,0,0,.7);
+    color: #fff;
+    padding: 4px 12px; border-radius: 999px;
+    font-size: 11px; font-weight: 700;
+    backdrop-filter: blur(4px);
+}
+.blog-card-body {
+    padding: 18px;
+    flex: 1;
+    display: flex; flex-direction: column;
+}
+.blog-card-title {
+    font-weight: 700; font-size: 1.05rem; line-height: 1.4;
+    margin-bottom: 10px;
+    display: -webkit-box; -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical; overflow: hidden;
+}
+.blog-card-title a { color: #111827; text-decoration: none; }
+.blog-card-title a:hover { color: #198754; }
+.blog-card-excerpt {
+    color: #6b7280; font-size: 13.5px; line-height: 1.6;
+    margin-bottom: 14px;
+    display: -webkit-box; -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical; overflow: hidden;
+    flex: 1;
+}
+.blog-card-foot {
+    display: flex; align-items: center; justify-content: space-between;
+    padding-top: 10px; border-top: 1px dashed #e5e7eb;
+}
+.blog-card-link {
+    color: #198754;
+    font-weight: 600; font-size: 13px;
+    text-decoration: none;
+    transition: gap .2s ease;
+}
+.blog-card-link:hover { color: #065f46; }
+.blog-card-link i { transition: transform .2s ease; }
+.blog-card-link:hover i { transform: translateX(3px); }
 </style>
 @endsection

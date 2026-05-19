@@ -273,11 +273,17 @@ class PaymentController extends Controller
         $this->expirePendingOrders();
 
         $request->validate([
-            'shipping_address' => 'required|string|max:255',
-            'phone' => 'required|string|max:20',
-            'payment_method' => 'required|in:cod,card',
-            'note' => 'nullable|string|max:500',
-            'voucher_code' => 'nullable|string|max:50',
+            'sender_name'         => 'required|string|max:100',
+            'sender_phone'        => 'required|string|max:30',
+            'recipient_name'      => 'required|string|max:100',
+            'phone'               => 'required|string|max:20',
+            'shipping_address'    => 'required|string|max:255',
+            'delivery_date'       => 'nullable|date|after_or_equal:today',
+            'delivery_time_slot'  => 'nullable|string|max:30',
+            'recipient_message'   => 'nullable|string|max:500',
+            'payment_method'      => 'required|in:cod,card',
+            'note'                => 'nullable|string|max:500',
+            'voucher_code'        => 'nullable|string|max:50',
         ]);
 
         $isBuyNow = $request->input('checkout_source') === 'buy_now';
@@ -316,9 +322,15 @@ class PaymentController extends Controller
 
         if ($request->payment_method === 'card' && $pendingOrder && $pendingOrder->status === 'pending') {
             $pendingOrder->update([
-                'shipping_address' => $request->shipping_address,
-                'phone' => $request->phone,
-                'note' => $request->note,
+                'shipping_address'    => $request->shipping_address,
+                'phone'               => $request->phone,
+                'note'                => $request->note,
+                'sender_name'         => $request->sender_name,
+                'sender_phone'        => $request->sender_phone,
+                'recipient_name'      => $request->recipient_name,
+                'delivery_date'       => $request->delivery_date ?: null,
+                'delivery_time_slot'  => $request->delivery_time_slot ?: null,
+                'recipient_message'   => $request->recipient_message ?: null,
             ]);
 
             return redirect()->route('checkout.card', $pendingOrder)->with('success', 'Vui lòng hoàn tất thanh toán thẻ để xác nhận đơn hàng.');
@@ -329,14 +341,20 @@ class PaymentController extends Controller
             $inventory->reserveForCartItems($cartItems);
 
             $order = new Order([
-                'user_id' => Auth::id(),
-                'order_code' => 'HD'.strtoupper(Str::random(6)),
-                'total_amount' => $total,
-                'status' => $request->payment_method === 'card' ? 'pending' : 'cod',
-                'stock_deducted' => true,
-                'shipping_address' => $request->shipping_address,
-                'phone' => $request->phone,
-                'note' => $this->buildOrderNote($request->note, $voucher?->code, $distanceKm, $shipping, $discount, $geocodedAddress),
+                'user_id'             => Auth::id(),
+                'order_code'          => 'HD'.strtoupper(Str::random(6)),
+                'total_amount'        => $total,
+                'status'              => $request->payment_method === 'card' ? 'pending' : 'cod',
+                'stock_deducted'      => true,
+                'shipping_address'    => $request->shipping_address,
+                'phone'               => $request->phone,
+                'note'                => $this->buildOrderNote($request->note, $voucher?->code, $distanceKm, $shipping, $discount, $geocodedAddress),
+                'sender_name'         => $request->sender_name,
+                'sender_phone'        => $request->sender_phone,
+                'recipient_name'      => $request->recipient_name,
+                'delivery_date'       => $request->delivery_date ?: null,
+                'delivery_time_slot'  => $request->delivery_time_slot ?: null,
+                'recipient_message'   => $request->recipient_message ?: null,
             ]);
             $order->created_at = now();
             $order->save();

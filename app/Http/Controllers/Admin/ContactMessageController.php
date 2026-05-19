@@ -3,18 +3,22 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Mail\ContactMessageReplied;
 use App\Models\ContactMessage;
 use App\Models\ContactReply;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Mail;
 
 class ContactMessageController extends Controller
 {
     public function index(Request $request)
     {
-        $query = ContactMessage::query()->latest();
+        $query = ContactMessage::query()
+            ->withCount('replies')
+            ->with(['user', 'replies' => function ($q) {
+                $q->latest()->limit(1);
+            }])
+            ->latest();
 
         if ($request->filled('q')) {
             $q = $request->q;
@@ -30,9 +34,16 @@ class ContactMessageController extends Controller
             $query->where('status', $request->status);
         }
 
-        $messages = $query->paginate(12)->withQueryString();
+        $messages = $query->paginate(15)->withQueryString();
 
-        return view('admin.contact_messages.index', compact('messages'));
+        $statusCounts = [
+            'all' => ContactMessage::count(),
+            'new' => ContactMessage::where('status', 'new')->count(),
+            'awaiting_reply' => ContactMessage::where('status', 'awaiting_reply')->count(),
+            'replied' => ContactMessage::where('status', 'replied')->count(),
+        ];
+
+        return view('admin.contact_messages.index', compact('messages', 'statusCounts'));
     }
 
     public function show(ContactMessage $contactMessage)
@@ -43,59 +54,80 @@ class ContactMessageController extends Controller
             $contactMessage->save();
         }
 
-        $contactMessage->load(['replies.admin']);
+        // Nếu thread đang awaiting_reply → admin xem coi như đã thấy
+        $contactMessage->load([
+            'user',
+            'replies' => fn ($q) => $q->orderBy('created_at'),
+            'replies.admin',
+            'replies.user',
+        ]);
 
         return view('admin.contact_messages.show', compact('contactMessage'));
     }
 
+    /**
+     * Admin gửi tin nhắn trong hộp thoại. Lưu DB, KHÔNG gửi email nữa.
+     */
     public function reply(Request $request, ContactMessage $contactMessage)
     {
         $request->validate([
-            'subject' => 'nullable|string|max:255',
             'body' => 'required|string|max:3000',
         ]);
 
-        $reply = ContactReply::create([
+        ContactReply::create([
             'contact_message_id' => $contactMessage->id,
             'admin_id' => Auth::guard('admin')->id(),
-            'subject' => $request->subject,
+            'user_id' => null,
+            'subject' => null,
             'body' => $request->body,
             'to_email' => $contactMessage->email,
+            'sent_at' => now(),
         ]);
 
-        try {
-            Mail::to($contactMessage->email)
-                ->replyTo(config('shop.contact_inbox_email'), config('app.name'))
-                ->send(new ContactMessageReplied($contactMessage, $reply));
-
-            $reply->sent_at = now();
-            $reply->save();
-
-            $contactMessage->status = 'replied';
-            $contactMessage->replied_at = now();
-            if (! $contactMessage->read_at) {
-                $contactMessage->read_at = now();
-            }
-            $contactMessage->save();
-
-            return redirect()
-                ->route('admin.contact-messages.show', $contactMessage)
-                ->with('success', 'Đã gửi phản hồi tới email khách hàng.');
-        } catch (\Throwable $e) {
-            $reply->send_error = $e->getMessage();
-            $reply->save();
-
-            return redirect()
-                ->route('admin.contact-messages.show', $contactMessage)
-                ->with('error', 'Gửi email thất bại. Vui lòng kiểm tra cấu hình email (SMTP) trong .env.');
+        $contactMessage->status = 'replied';
+        $contactMessage->replied_at = now();
+        if (! $contactMessage->read_at) {
+            $contactMessage->read_at = now();
         }
+        $contactMessage->save();
+
+        if ($request->expectsJson() || $request->wantsJson()) {
+            return response()->json(['ok' => true]);
+        }
+
+        return redirect()->route('admin.contact-messages.show', $contactMessage);
+    }
+
+    /**
+     * JSON poll cho admin chat — trả về reply có id > since.
+     */
+    public function poll(Request $request, ContactMessage $contactMessage): JsonResponse
+    {
+        $since = (int) $request->get('since', 0);
+        $messages = $contactMessage->replies()
+            ->with(['admin', 'user'])
+            ->where('id', '>', $since)
+            ->orderBy('id')
+            ->get();
+
+        $items = $messages->map(fn ($r) => [
+            'id' => $r->id,
+            'body' => $r->body,
+            'is_customer' => $r->isFromCustomer(),
+            'sender_name' => $r->senderName(),
+            'created_at' => optional($r->created_at)?->format('H:i d/m/Y'),
+        ]);
+
+        return response()->json([
+            'items' => $items,
+            'last_id' => $messages->max('id') ?: $since,
+        ]);
     }
 
     public function destroy(ContactMessage $contactMessage)
     {
         $contactMessage->delete();
 
-        return redirect()->route('admin.contact-messages.index')->with('success', 'Đã xóa tin nhắn.');
+        return redirect()->route('admin.contact-messages.index')->with('success', 'Đã xóa hộp thoại.');
     }
 }
-

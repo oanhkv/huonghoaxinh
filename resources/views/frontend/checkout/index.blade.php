@@ -47,14 +47,59 @@
                         </div>
                     @endif
 
+                    {{-- ============ SECTION 1: Người gửi ============ --}}
                     <div class="hh-co-card mb-4">
                         <div class="hh-co-card-head d-flex align-items-center justify-content-between">
-                            <h6 class="mb-0 fw-bold"><i class="fas fa-truck me-2 text-success"></i>Thông tin giao hàng</h6>
+                            <h6 class="mb-0 fw-bold">
+                                <span class="hh-step-num">1</span>
+                                <i class="fas fa-user-pen me-1 text-success"></i>Thông tin người gửi
+                            </h6>
                             @auth
                                 <a href="{{ route('profile.edit') }}" class="small text-success text-decoration-none" target="_blank" rel="noopener">
                                     <i class="fas fa-user-pen me-1"></i>Sửa hồ sơ
                                 </a>
                             @endauth
+                        </div>
+                        <div class="p-4">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="senderName" class="form-label fw-semibold">Họ tên người gửi *</label>
+                                    <input type="text" name="sender_name" id="senderName"
+                                           value="{{ old('sender_name', $profileName) }}"
+                                           class="form-control hh-input @error('sender_name') is-invalid @enderror"
+                                           required placeholder="VD: Nguyễn Văn A">
+                                    @error('sender_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="senderPhone" class="form-label fw-semibold">SĐT người gửi *</label>
+                                    <input type="text" name="sender_phone" id="senderPhone"
+                                           value="{{ old('sender_phone', $profilePhone) }}"
+                                           class="form-control hh-input @error('sender_phone') is-invalid @enderror"
+                                           required placeholder="VD: 0859 773 086">
+                                    @error('sender_phone')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+                            </div>
+
+                            <div class="form-check mt-3 hh-same-as-sender">
+                                <input type="checkbox" class="form-check-input" id="sameRecipient" checked>
+                                <label for="sameRecipient" class="form-check-label fw-semibold">
+                                    Tôi cũng là người nhận hoa
+                                </label>
+                                <div class="small text-muted mt-1">
+                                    Bỏ tick nếu bạn gửi hoa tặng người khác (kèm địa chỉ + lời nhắn riêng).
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- ============ SECTION 2: Người nhận ============ --}}
+                    <div class="hh-co-card mb-4">
+                        <div class="hh-co-card-head d-flex align-items-center justify-content-between">
+                            <h6 class="mb-0 fw-bold">
+                                <span class="hh-step-num">2</span>
+                                <i class="fas fa-gift me-1 text-success"></i>Thông tin người nhận
+                            </h6>
+                            <span class="badge bg-success-subtle text-success">Bắt buộc</span>
                         </div>
                         <div class="p-4">
                             @auth
@@ -91,9 +136,31 @@
                                 @endif
                             @endauth
 
-                            <div class="mb-3">
-                                <label for="shippingAddress" class="form-label fw-semibold">Địa chỉ giao hàng *</label>
-                                <textarea name="shipping_address" id="shippingAddress" class="form-control hh-input @error('shipping_address') is-invalid @enderror" rows="3" required placeholder="Số nhà, ngõ, phường/xã, quận/huyện, Hà Nội">{{ $shippingAddress ?? '' }}</textarea>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="recipientName" class="form-label fw-semibold">Họ tên người nhận *</label>
+                                    <input type="text" name="recipient_name" id="recipientName"
+                                           value="{{ old('recipient_name', $profileName) }}"
+                                           class="form-control hh-input @error('recipient_name') is-invalid @enderror"
+                                           required placeholder="VD: Nguyễn Thị B">
+                                    @error('recipient_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="phone" class="form-label fw-semibold">SĐT người nhận *</label>
+                                    <input type="text" name="phone" id="phone"
+                                           value="{{ old('phone', $phone) }}"
+                                           class="form-control hh-input @error('phone') is-invalid @enderror"
+                                           required placeholder="VD: 0859 773 086">
+                                    @error('phone')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <label for="shippingAddress" class="form-label fw-semibold">Địa chỉ nhận hàng *</label>
+                                <textarea name="shipping_address" id="shippingAddress"
+                                          class="form-control hh-input @error('shipping_address') is-invalid @enderror"
+                                          rows="2" required
+                                          placeholder="Số nhà, ngõ, phường/xã, quận/huyện, Hà Nội">{{ old('shipping_address', $shippingAddress) }}</textarea>
                                 <div class="form-text small mt-1">
                                     <i class="fas fa-store me-1 text-success"></i>
                                     Phí ship tính từ cửa hàng: <strong>{{ config('shop.address_line') }}</strong>
@@ -107,15 +174,49 @@
                                 @error('shipping_address')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>
 
-                            <div class="mb-3">
-                                <label for="phone" class="form-label fw-semibold">Số điện thoại *</label>
-                                <input type="text" name="phone" id="phone" value="{{ $phone ?? '' }}" class="form-control hh-input @error('phone') is-invalid @enderror" required placeholder="VD: 0859 773 086">
-                                @error('phone')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            <div class="row g-3 mt-1">
+                                <div class="col-md-5">
+                                    <label for="deliveryDate" class="form-label fw-semibold">Ngày giao</label>
+                                    <input type="date" name="delivery_date" id="deliveryDate"
+                                           value="{{ old('delivery_date') }}"
+                                           min="{{ now()->format('Y-m-d') }}"
+                                           class="form-control hh-input @error('delivery_date') is-invalid @enderror">
+                                    @error('delivery_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+                                <div class="col-md-7">
+                                    <label for="deliveryTimeSlot" class="form-label fw-semibold">Khung giờ giao</label>
+                                    <select name="delivery_time_slot" id="deliveryTimeSlot"
+                                            class="form-select hh-input @error('delivery_time_slot') is-invalid @enderror">
+                                        <option value="">-- Bất kỳ trong ngày --</option>
+                                        @foreach(['08:00 - 10:00','10:00 - 12:00','13:00 - 15:00','15:00 - 17:00','17:00 - 19:00','19:00 - 21:00'] as $slot)
+                                            <option value="{{ $slot }}" {{ old('delivery_time_slot') === $slot ? 'selected' : '' }}>{{ $slot }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('delivery_time_slot')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
                             </div>
 
-                            <div class="mb-0">
-                                <label for="note" class="form-label fw-semibold">Ghi chú đơn hàng</label>
-                                <textarea name="note" id="note" class="form-control hh-input" rows="3" placeholder="Lời nhắn, thời gian giao mong muốn...">{{ $note ?? '' }}</textarea>
+                            <div class="mt-3">
+                                <label for="recipientMessage" class="form-label fw-semibold">
+                                    <i class="far fa-envelope me-1 text-success"></i>Lời nhắn gửi người nhận
+                                </label>
+                                <textarea name="recipient_message" id="recipientMessage"
+                                          class="form-control hh-input @error('recipient_message') is-invalid @enderror"
+                                          rows="3"
+                                          placeholder="VD: Chúc bạn sinh nhật vui vẻ! Yêu thương từ A."
+                                          maxlength="500">{{ old('recipient_message') }}</textarea>
+                                <div class="form-text small">Lời nhắn này sẽ được in trên thiệp đi kèm hoa.</div>
+                                @error('recipient_message')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+
+                            <div class="mt-3 mb-0">
+                                <label for="note" class="form-label fw-semibold">
+                                    <i class="fas fa-store me-1 text-success"></i>Ghi chú dành cho shop
+                                </label>
+                                <textarea name="note" id="note" class="form-control hh-input"
+                                          rows="2" maxlength="500"
+                                          placeholder="VD: Gói riêng từng bó, gọi shipper trước 15 phút...">{{ old('note', $note) }}</textarea>
+                                <div class="form-text small">Lưu ý đặc biệt cho shop khi chuẩn bị / vận chuyển.</div>
                             </div>
                         </div>
                     </div>
@@ -291,6 +392,22 @@
     }
     .hh-input { border-radius: 12px; padding: .65rem .9rem; }
     .hh-input:focus { border-color: var(--hh-primary); box-shadow: 0 0 0 .2rem rgba(25,135,84,0.18); }
+
+    .hh-step-num {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 26px; height: 26px; border-radius: 50%;
+        background: linear-gradient(135deg, var(--hh-primary), var(--hh-accent));
+        color: #fff; font-size: 13px; font-weight: 800;
+        margin-right: 6px;
+    }
+    .hh-same-as-sender {
+        padding: 12px 14px; border-radius: 12px;
+        background: rgba(25,135,84,0.06);
+        border: 1px dashed rgba(25,135,84,0.3);
+    }
+    .hh-same-as-sender .form-check-input:checked {
+        background-color: var(--hh-primary); border-color: var(--hh-primary);
+    }
 
     .hh-pay-option {
         display: flex; align-items: center; gap: 14px;
@@ -713,6 +830,43 @@
         // Tự động áp nếu cả 2 trường địa chỉ + phone đang trống
         if (! addr.value.trim() && ! (phoneInput?.value || '').trim()) {
             useBtn?.click();
+        }
+    }
+
+    // "Tôi cũng là người nhận hoa" → đồng bộ tên + SĐT từ sender sang recipient
+    const sameRecipientCb = document.getElementById('sameRecipient');
+    const senderName  = document.getElementById('senderName');
+    const senderPhone = document.getElementById('senderPhone');
+    const recName     = document.getElementById('recipientName');
+    const recPhone    = document.getElementById('phone');
+
+    function syncRecipientFromSender() {
+        if (! sameRecipientCb || ! sameRecipientCb.checked) return;
+        if (senderName && recName) recName.value = senderName.value;
+        if (senderPhone && recPhone) recPhone.value = senderPhone.value;
+    }
+    sameRecipientCb?.addEventListener('change', function () {
+        if (this.checked) {
+            syncRecipientFromSender();
+            if (recName) recName.readOnly = true;
+            if (recPhone) recPhone.readOnly = true;
+        } else {
+            if (recName) recName.readOnly = false;
+            if (recPhone) recPhone.readOnly = false;
+        }
+    });
+    senderName?.addEventListener('input', syncRecipientFromSender);
+    senderPhone?.addEventListener('input', syncRecipientFromSender);
+
+    // Áp trạng thái mặc định
+    if (sameRecipientCb?.checked) {
+        if (recName) recName.readOnly = true;
+        if (recPhone) recPhone.readOnly = true;
+        // Nếu trùng tên sender — giữ; nếu khác → bỏ tick
+        if (recName && recName.value && senderName.value && recName.value !== senderName.value) {
+            sameRecipientCb.checked = false;
+            recName.readOnly = false;
+            recPhone.readOnly = false;
         }
     }
 

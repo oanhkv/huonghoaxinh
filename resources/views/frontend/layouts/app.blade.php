@@ -107,7 +107,7 @@
             z-index: 2000;
         }
 
-        /* ========== MEGA DROPDOWN cho Danh mục ========== */
+        /* ========== MEGA DROPDOWN cho Danh mục sản phẩm ========== */
         .mega-dropdown-menu {
             width: min(960px, calc(100vw - 32px));
             margin-top: 0.5rem !important;
@@ -119,6 +119,28 @@
             to { opacity: 1; transform: translateY(0); }
         }
         .mega-dropdown .dropdown-menu { left: 50% !important; transform: translateX(-50%) !important; }
+
+        /* ===== Hover-to-open dropdown (desktop only) ===== */
+        .hhx-hover-dd-caret {
+            transition: transform .25s ease;
+            opacity: .75;
+        }
+        @media (min-width: 992px) {
+            .hhx-hover-dd:hover > .dropdown-menu,
+            .hhx-hover-dd:focus-within > .dropdown-menu {
+                display: block;
+            }
+            .hhx-hover-dd:hover > .nav-link .hhx-hover-dd-caret {
+                transform: rotate(180deg);
+                opacity: 1;
+            }
+            /* Khoảng đệm vô hình giữ chuột không rớt khi di từ trigger xuống menu */
+            .hhx-hover-dd > .dropdown-menu::before {
+                content: '';
+                position: absolute;
+                top: -12px; left: 0; right: 0; height: 12px;
+            }
+        }
         .mega-cat-grid { background: #fff; }
         .mega-cat-block {
             padding: 14px 16px;
@@ -172,17 +194,27 @@
             color: #fff;
             min-height: 100%;
         }
+        .mega-cat-feature-link {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            text-decoration: none;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .mega-cat-feature-link:hover {
+            transform: translateY(-2px);
+        }
         @media (max-width: 991.98px) {
             .mega-dropdown-menu { width: 100%; }
             .mega-dropdown .dropdown-menu { transform: none !important; left: 0 !important; }
         }
 
         .site-nav .nav-link {
-            font-weight: 600;
+            font-weight: 900;
             letter-spacing: 0.02em;
-            font-size: 0.8rem;
+            font-size: 0.95rem;
             color: #334155 !important;
-            padding: 0.65rem 0.9rem !important;
+            padding: 0.8rem 1.25rem !important;
             border-radius: 999px;
             transition: color 0.2s ease, background 0.2s ease, transform 0.2s ease;
         }
@@ -616,6 +648,7 @@
                                     <li><a class="dropdown-item" href="{{ route('wishlist.index') }}">Sản phẩm yêu thích</a></li>
                                     <li><a class="dropdown-item" href="{{ route('cart.index') }}">Giỏ hàng của tôi</a></li>
                                     <li><a class="dropdown-item" href="{{ route('orders.history') }}">Lịch sử đơn hàng</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('account.contact.index') }}"><i class="far fa-comments me-2"></i>Chat với cửa hàng</a></li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li>
                                         <a class="dropdown-item text-danger" href="#" 
@@ -658,9 +691,12 @@
                     </a>
                 </li>
 
-                <li class="nav-item dropdown mega-dropdown position-static">
-                    <a class="nav-link dropdown-toggle d-inline-flex align-items-center gap-1" href="#" data-bs-toggle="dropdown" role="button" aria-expanded="false">
-                        <i class="fas fa-th-large small me-1"></i> Danh mục
+                <li class="nav-item dropdown mega-dropdown position-static hhx-hover-dd">
+                    <a class="nav-link d-inline-flex align-items-center gap-1 @if(request()->routeIs('shop')) active @endif"
+                       href="{{ route('shop') }}" role="button"
+                       aria-haspopup="true" aria-expanded="false">
+                        <i class="fas fa-th-large small me-1"></i> Danh mục sản phẩm
+                        <i class="fas fa-chevron-down small ms-1 hhx-hover-dd-caret"></i>
                     </a>
                     <div class="dropdown-menu mega-dropdown-menu shadow-lg border-0 p-0 rounded-4 overflow-hidden">
                         <div class="row g-0">
@@ -692,14 +728,16 @@
                                     @endforeach
                                 </div>
                             </div>
-                            <div class="col-lg-3 d-none d-lg-block mega-cat-feature p-4 d-flex flex-column justify-content-between">
-                                <div>
-                                    <span class="badge bg-white text-danger rounded-pill px-3 py-2 mb-3"><i class="fas fa-fire me-1"></i> Hot</span>
-                                    <h5 class="text-white fw-bold mb-2">Hoa Valentine 2026</h5>
-                                    <p class="text-white-50 small mb-3">Bộ sưu tập tone đỏ - hồng - pastel hot nhất mùa lễ tình nhân.</p>
-                                </div>
-                                <a href="{{ route('shop') }}?category=hoa-tinh-yeu" class="btn btn-light btn-sm rounded-pill align-self-start">
-                                    Khám phá ngay <i class="fas fa-arrow-right ms-1"></i>
+                            <div class="col-lg-3 d-none d-lg-block p-4">
+                                <a href="{{ route('shop') }}" class="mega-cat-feature mega-cat-feature-link h-100 rounded-4 p-4">
+                                    <div>
+                                        <span class="badge bg-white text-danger rounded-pill px-3 py-2 mb-3"><i class="fas fa-fire me-1"></i> Hot</span>
+                                        <h5 class="text-white fw-bold mb-2">Xem toàn bộ sản phẩm</h5>
+                                        <p class="text-white-50 small mb-3">Bấm vào đây để mở trang sản phẩm đầy đủ, không lọc theo danh mục.</p>
+                                    </div>
+                                    <span class="btn btn-light btn-sm rounded-pill align-self-start">
+                                        Tất cả sản phẩm <i class="fas fa-arrow-right ms-1"></i>
+                                    </span>
                                 </a>
                             </div>
                         </div>
@@ -721,12 +759,6 @@
                 <li class="nav-item">
                     <a href="{{ route('vouchers') }}" class="nav-link @if(request()->routeIs('vouchers')) active @endif">
                         <i class="fas fa-tag me-1"></i>Ưu đãi
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a href="{{ route('contact') }}" class="nav-link @if(request()->routeIs('contact')) active @endif">
-                        Liên hệ
                     </a>
                 </li>
 
@@ -805,7 +837,7 @@
                 <div class="col-lg-2 col-md-4 col-6">
                     <div class="footer-heading">Hỗ trợ</div>
                     <ul class="footer-links">
-                        <li><a href="{{ route('contact') }}">Liên hệ</a></li>
+                        <li><a href="{{ route('account.contact.index') }}">Chat với cửa hàng</a></li>
                         <li><a href="{{ route('cart.index') }}">Giỏ hàng</a></li>
                         @auth
                             <li><a href="{{ route('orders.history') }}">Đơn của tôi</a></li>
@@ -1086,5 +1118,238 @@
             }, 3500);
         }
     </script>
+
+    {{-- ============================================================
+         FLOATING CHAT BUTTON — bottom right
+         Click → mở hộp thoại chat với cửa hàng.
+         Có badge số tin nhắn admin chưa đọc (auto-poll 10s/lần).
+         Ẩn ở các trang Chat / Login / Register để không trùng UI.
+       ============================================================ --}}
+    @php
+        $hideChatFab = request()->routeIs('account.contact.*')
+                       || request()->routeIs('login')
+                       || request()->routeIs('register')
+                       || request()->routeIs('password.*');
+    @endphp
+    @unless($hideChatFab)
+        <a href="{{ Auth::check() ? route('account.contact.index') : route('login') }}"
+           class="hhx-chat-fab"
+           id="hhxChatFab"
+           aria-label="Chat với cửa hàng">
+            <span class="hhx-chat-fab-ring"></span>
+            <span class="hhx-chat-fab-ring hhx-chat-fab-ring--delayed"></span>
+            <span class="hhx-chat-fab-inner">
+                <i class="far fa-comments"></i>
+            </span>
+            <span class="hhx-chat-fab-badge" id="hhxChatFabBadge" hidden>0</span>
+            <span class="hhx-chat-fab-tooltip">Chat với cửa hàng</span>
+        </a>
+
+        <style>
+            .hhx-chat-fab {
+                position: fixed;
+                right: 26px;
+                bottom: 26px;
+                width: 60px;
+                height: 60px;
+                z-index: 9999;
+                text-decoration: none;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                transform: translateZ(0);
+                animation: hhxFabIn .55s cubic-bezier(.34,1.56,.64,1);
+            }
+            .hhx-chat-fab-inner {
+                position: relative;
+                z-index: 2;
+                width: 60px;
+                height: 60px;
+                border-radius: 50%;
+                background: linear-gradient(135deg, #f06595 0%, #d63384 55%, #20a464 130%);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #fff;
+                font-size: 26px;
+                box-shadow: 0 14px 30px rgba(214, 51, 132, .35),
+                            0 6px 12px rgba(0, 0, 0, .12);
+                transition: transform .25s ease, box-shadow .25s ease;
+            }
+            .hhx-chat-fab:hover .hhx-chat-fab-inner {
+                transform: scale(1.08) rotate(-3deg);
+                box-shadow: 0 18px 42px rgba(214, 51, 132, .5),
+                            0 6px 12px rgba(0, 0, 0, .14);
+            }
+            .hhx-chat-fab:active .hhx-chat-fab-inner { transform: scale(.96); }
+
+            .hhx-chat-fab-ring {
+                position: absolute;
+                inset: 0;
+                border-radius: 50%;
+                background: rgba(240, 101, 149, .55);
+                z-index: 1;
+                animation: hhxFabPulse 2.2s ease-out infinite;
+            }
+            .hhx-chat-fab-ring--delayed { animation-delay: 1.1s; }
+
+            .hhx-chat-fab-badge {
+                position: absolute;
+                top: -4px;
+                right: -4px;
+                min-width: 22px;
+                height: 22px;
+                padding: 0 6px;
+                border-radius: 11px;
+                background: #ef4444;
+                color: #fff;
+                font-size: 12px;
+                font-weight: 700;
+                line-height: 22px;
+                text-align: center;
+                box-shadow: 0 4px 10px rgba(239, 68, 68, .45);
+                border: 2px solid #fff;
+                z-index: 3;
+                animation: hhxBadgePop .35s ease, hhxBadgeJiggle 2.4s ease infinite;
+            }
+
+            .hhx-chat-fab-tooltip {
+                position: absolute;
+                right: 76px;
+                top: 50%;
+                transform: translateY(-50%) translateX(8px);
+                opacity: 0;
+                pointer-events: none;
+                background: #1f2937;
+                color: #fff;
+                font-size: 13px;
+                font-weight: 500;
+                padding: 6px 12px;
+                border-radius: 8px;
+                white-space: nowrap;
+                box-shadow: 0 8px 20px rgba(0, 0, 0, .15);
+                transition: opacity .2s ease, transform .2s ease;
+            }
+            .hhx-chat-fab-tooltip::after {
+                content: '';
+                position: absolute;
+                right: -4px;
+                top: 50%;
+                transform: translateY(-50%) rotate(45deg);
+                width: 8px;
+                height: 8px;
+                background: #1f2937;
+            }
+            .hhx-chat-fab:hover .hhx-chat-fab-tooltip {
+                opacity: 1;
+                transform: translateY(-50%) translateX(0);
+            }
+
+            @keyframes hhxFabIn {
+                0% { opacity: 0; transform: scale(.4) translateY(20px); }
+                100% { opacity: 1; transform: scale(1) translateY(0); }
+            }
+            @keyframes hhxFabPulse {
+                0%   { transform: scale(1);   opacity: .55; }
+                70%  { transform: scale(1.7); opacity: 0;   }
+                100% { transform: scale(1.7); opacity: 0;   }
+            }
+            @keyframes hhxBadgePop {
+                0%   { transform: scale(0);   }
+                70%  { transform: scale(1.25);}
+                100% { transform: scale(1);   }
+            }
+            @keyframes hhxBadgeJiggle {
+                0%, 90%, 100% { transform: rotate(0); }
+                92% { transform: rotate(-14deg); }
+                94% { transform: rotate(12deg); }
+                96% { transform: rotate(-8deg); }
+                98% { transform: rotate(6deg); }
+            }
+            @media (max-width: 575.98px) {
+                .hhx-chat-fab { right: 16px; bottom: 16px; width: 54px; height: 54px; }
+                .hhx-chat-fab-inner { width: 54px; height: 54px; font-size: 22px; }
+                .hhx-chat-fab-tooltip { display: none; }
+            }
+        </style>
+
+        @auth
+            <script>
+            (function () {
+                const fab     = document.getElementById('hhxChatFab');
+                const badge   = document.getElementById('hhxChatFabBadge');
+                const url     = "{{ route('account.contact.unread-count') }}";
+
+                async function fetchUnread() {
+                    try {
+                        const r = await fetch(url, { headers: { Accept: 'application/json' } });
+                        if (! r.ok) return;
+                        const d = await r.json();
+                        const n = parseInt(d.count || 0, 10);
+                        if (n > 0) {
+                            badge.textContent = n > 99 ? '99+' : n;
+                            badge.hidden = false;
+                            fab.classList.add('hhx-chat-fab--has-unread');
+                            // Toast nhẹ khi có tin mới (so với lần fetch trước)
+                            const prev = parseInt(badge.dataset.prev || '0', 10);
+                            if (n > prev && prev > 0) {
+                                showNewMsgToast(n - prev);
+                            }
+                            badge.dataset.prev = n;
+                        } else {
+                            badge.hidden = true;
+                            fab.classList.remove('hhx-chat-fab--has-unread');
+                            badge.dataset.prev = '0';
+                        }
+                    } catch (e) { /* silent */ }
+                }
+
+                function showNewMsgToast(num) {
+                    const id = 'hhx-newmsg-' + Date.now();
+                    const html = `
+                        <div id="${id}" class="hhx-newmsg-toast">
+                            <i class="far fa-comment-dots me-2"></i>
+                            Bạn có ${num} tin nhắn mới từ Hương Hoa Xinh
+                        </div>`;
+                    document.body.insertAdjacentHTML('beforeend', html);
+                    setTimeout(() => {
+                        const el = document.getElementById(id);
+                        if (el) { el.style.opacity = '0'; el.style.transform = 'translateY(20px)'; }
+                        setTimeout(() => el && el.remove(), 350);
+                    }, 4000);
+                }
+
+                fetchUnread();
+                setInterval(fetchUnread, 10000); // poll mỗi 10s
+            })();
+            </script>
+            <style>
+                .hhx-newmsg-toast {
+                    position: fixed;
+                    right: 100px;
+                    bottom: 40px;
+                    z-index: 9998;
+                    background: #ffffff;
+                    border: 1px solid #f3d6e3;
+                    box-shadow: 0 12px 30px rgba(214, 51, 132, .18);
+                    color: #1f2937;
+                    border-radius: 14px;
+                    padding: 12px 18px;
+                    font-size: 14px;
+                    font-weight: 500;
+                    transition: opacity .35s ease, transform .35s ease;
+                    animation: hhxNewMsgIn .4s cubic-bezier(.34,1.56,.64,1);
+                }
+                .hhx-newmsg-toast i { color: #d63384; }
+                @keyframes hhxNewMsgIn {
+                    0%   { opacity: 0; transform: translateY(20px); }
+                    100% { opacity: 1; transform: translateY(0); }
+                }
+                @media (max-width: 575.98px) {
+                    .hhx-newmsg-toast { right: 12px; bottom: 84px; }
+                }
+            </style>
+        @endauth
+    @endunless
 </body>
 </html>

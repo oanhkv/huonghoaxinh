@@ -11,7 +11,7 @@
 
     @php
         $unreadMsg = \Illuminate\Support\Facades\Schema::hasTable('contact_messages')
-            ? \App\Models\ContactMessage::where('status', 'new')->count() : 0;
+            ? \App\Models\ContactMessage::whereIn('status', ['new', 'awaiting_reply'])->count() : 0;
         $pendingOrd = \App\Models\Order::where('status', 'pending')->count();
         $lowStock = \App\Models\Product::where('is_active', true)->where('stock', '<=', 5)->count();
     @endphp
@@ -52,6 +52,8 @@
         /* ============ SIDEBAR (xanh dương pastel) ============ */
         .admin-sidebar {
             width: var(--sidebar-w);
+            min-width: var(--sidebar-w);   /* không bị thu hẹp khi content overflow */
+            flex-shrink: 0;                /* khoá không cho flexbox co lại */
             min-height: 100vh;
             background: var(--sidebar-bg);
             color: var(--sidebar-text);
@@ -587,11 +589,29 @@
                         <i class="fas fa-star"></i> Đánh giá
                     </a>
                 </li>
+                <li>
+                    <a href="#smBlog" class="sidebar-link {{ request()->routeIs('admin.blog-posts.*') || request()->routeIs('admin.blog-categories.*') ? 'active' : '' }}"
+                       data-bs-toggle="collapse" role="button"
+                       aria-expanded="{{ request()->routeIs('admin.blog-posts.*') || request()->routeIs('admin.blog-categories.*') ? 'true' : 'false' }}">
+                        <i class="fas fa-newspaper"></i> Blog
+                        <i class="fas fa-chevron-right arrow"></i>
+                    </a>
+                    <div class="collapse {{ request()->routeIs('admin.blog-posts.*') || request()->routeIs('admin.blog-categories.*') ? 'show' : '' }}" id="smBlog">
+                        <div class="sidebar-submenu">
+                            <a href="{{ route('admin.blog-posts.index') }}" class="sidebar-link {{ request()->routeIs('admin.blog-posts.*') ? 'active' : '' }}">
+                                <i class="fas fa-circle" style="font-size: 6px;"></i> Bài viết
+                            </a>
+                            <a href="{{ route('admin.blog-categories.index') }}" class="sidebar-link {{ request()->routeIs('admin.blog-categories.*') ? 'active' : '' }}">
+                                <i class="fas fa-circle" style="font-size: 6px;"></i> Danh mục blog
+                            </a>
+                        </div>
+                    </div>
+                </li>
 
                 <li><div class="sidebar-section-label" style="padding-left: 6px;">Quan hệ</div></li>
                 <li>
                     <a href="{{ route('admin.contact-messages.index') }}" class="sidebar-link {{ request()->routeIs('admin.contact-messages.*') ? 'active' : '' }}">
-                        <i class="fas fa-envelope"></i> Tin nhắn liên hệ
+                        <i class="far fa-comments"></i> Chat với khách hàng
                         @if($unreadMsg > 0)<span class="sidebar-badge">{{ $unreadMsg }}</span>@endif
                     </a>
                 </li>
@@ -654,8 +674,8 @@
 
                 <div class="topbar-actions">
                     <a href="{{ route('home') }}" target="_blank" class="topbar-btn d-none d-sm-grid" title="Xem trang bán hàng"><i class="fas fa-store"></i></a>
-                    <a href="{{ route('admin.contact-messages.index') }}" class="topbar-btn" title="Tin nhắn">
-                        <i class="fas fa-envelope"></i>
+                    <a href="{{ route('admin.contact-messages.index') }}" class="topbar-btn" title="Chat với khách">
+                        <i class="far fa-comments"></i>
                         @if($unreadMsg > 0)<span class="topbar-btn-count">{{ $unreadMsg > 99 ? '99+' : $unreadMsg }}</span>@endif
                     </a>
                     <a href="{{ route('admin.orders.index') }}?status=pending" class="topbar-btn" title="Đơn chờ xử lý">

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class ContactMessage extends Model
 {
     protected $fillable = [
+        'user_id',
         'name',
         'email',
         'subject',
@@ -25,5 +26,10 @@ class ContactMessage extends Model
     public function replies()
     {
         return $this->hasMany(ContactReply::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 }
