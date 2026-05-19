@@ -72,7 +72,7 @@ class ProductReviewController extends Controller
     private function userCanReviewProduct(int $userId, int $productId): bool
     {
         return Order::where('user_id', $userId)
-            ->whereIn('status', ['delivered', 'paid'])
+            ->where('status', 'delivered')
             ->whereHas('orderItems', function ($q) use ($productId) {
                 $q->where('product_id', $productId);
             })

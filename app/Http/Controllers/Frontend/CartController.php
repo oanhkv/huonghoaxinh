@@ -38,7 +38,6 @@ class CartController extends Controller
             $request->validate([
                 'product_id' => 'required|exists:products,id',
                 'quantity' => 'required|integer|min:1',
-                'unit_price' => 'nullable|numeric|min:0',
                 'variant' => 'nullable|string|max:255',
             ]);
 
@@ -55,8 +54,14 @@ class CartController extends Controller
                     'message' => 'Sản phẩm hiện đã hết hàng.',
                 ], 422);
             }
-            $price = $request->unit_price !== null ? $request->unit_price : $product->price;
             $variant = trim($request->variant ?? '');
+            $price = $this->resolvePriceForVariant($product, $variant);
+            if ($price === null) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Kích thước không hợp lệ.',
+                ], 422);
+            }
 
             $existingQuantity = $this->getExistingQuantity((int) $request->product_id);
 
