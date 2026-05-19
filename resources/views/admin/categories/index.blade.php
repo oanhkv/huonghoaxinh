@@ -42,7 +42,6 @@
                 <thead class="table-light">
                     <tr>
                         <th>Tên danh mục</th>
-                        <th>Slug</th>
                         <th>Số sản phẩm</th>
                         <th>Hành động</th>
                     </tr>
@@ -51,7 +50,6 @@
                     @forelse($categories as $category)
                     <tr>
                         <td><strong>{{ $category->name }}</strong></td>
-                        <td><code>{{ $category->slug }}</code></td>
                         <td>
                             <span class="badge bg-primary">{{ $category->products_count }}</span>
                         </td>
@@ -93,7 +91,7 @@
                     </div>
 
                     @empty
-                    <tr><td colspan="4" class="text-center py-4">Chưa có danh mục nào.</td></tr>
+                    <tr><td colspan="3" class="text-center py-4">Chưa có danh mục nào.</td></tr>
                     @endforelse
                 </tbody>
             </table>
